@@ -54,7 +54,7 @@ export default function App() {
     // 👇 IMPORTANTE: al cambiar programId, vuelve a "desconocido"
     setNextExists(null);
 
-    fetch(`http://localhost:3001/api/programs/${programId + 1}`, { signal: controller.signal })
+    fetch(`https://backendcartelera-production.up.railway.app/api/programs/${programId + 1}`, { signal: controller.signal })
       .then((res) => {
         if (res.status === 404) return setNextExists(false);
         if (!res.ok) return setNextExists(false);
