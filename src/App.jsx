@@ -32,7 +32,7 @@ export default function App() {
     setProgram(null);
     setError("");
 
-    fetch(`http://localhost:3001/api/programs/${programId}`, { signal: controller.signal })
+    fetch(`https://backendcartelera-production.up.railway.app/api/programs/${programId}`, { signal: controller.signal })
       .then((res) => {
         if (res.status === 404) throw new Error(`No existe el programa #${programId}`);
         if (!res.ok) throw new Error("No se pudo cargar la cartelera");
