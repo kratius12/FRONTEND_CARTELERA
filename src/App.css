@@ -11,9 +11,11 @@
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
@@ -22,6 +24,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -51,7 +54,7 @@
   background: #fafafa;
   border: 1px solid #e6e6e6;
   border-radius: 10px;
-  box-shadow: 0 6px 16px rgba(0,0,0,.06);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .06);
 }
 
 .pager__chip {
@@ -78,7 +81,7 @@
 
 .pager__btn:hover {
   background: #f5f5f5;
-  box-shadow: 0 6px 14px rgba(0,0,0,.08);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, .08);
 }
 
 .pager__btn:active {
@@ -118,7 +121,7 @@
 
 .pager__input:focus {
   border-color: #bdbdbd;
-  box-shadow: 0 0 0 3px rgba(0,0,0,.06);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, .06);
 }
 
 .pager__go {
@@ -145,8 +148,8 @@
     flex-wrap: wrap;
     gap: 8px;
   }
+
   .pager__spacer {
     display: none;
   }
 }
-

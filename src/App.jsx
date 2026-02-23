@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import MeetingFlipBook from "./MeetingFlipBook";
 
+const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
 export default function App() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -32,7 +34,7 @@ export default function App() {
     setProgram(null);
     setError("");
 
-    fetch(`https://backendcartelera-production.up.railway.app/api/programs/${programId}`, { signal: controller.signal })
+    fetch(`${API}/api/programs/${programId}`, { signal: controller.signal })
       .then((res) => {
         if (res.status === 404) throw new Error(`No existe el programa #${programId}`);
         if (!res.ok) throw new Error("No se pudo cargar la cartelera");
@@ -54,7 +56,7 @@ export default function App() {
     // 👇 IMPORTANTE: al cambiar programId, vuelve a "desconocido"
     setNextExists(null);
 
-    fetch(`https://backendcartelera-production.up.railway.app/api/programs/${programId + 1}`, { signal: controller.signal })
+    fetch(`${API}/api/programs/${programId + 1}`, { signal: controller.signal })
       .then((res) => {
         if (res.status === 404) return setNextExists(false);
         if (!res.ok) return setNextExists(false);

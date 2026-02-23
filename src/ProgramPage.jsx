@@ -74,41 +74,54 @@ export default function ProgramPage({ program }) {
             )}
 
             <div className="rows">
-              {(sec.items || []).map((it, i) => (
-                <div className={`row ${isTwoCol ? "twocol" : ""}`} key={i}>
-                  <div className="left">
-                    {/* number viene del backend o lo calculamos después; por ahora soporta ambos */}
-                    {it.number ? `${it.number}. ` : ""}
-                    {it.text}{" "}
-                    {typeof it.minutes === "number" ? (
-                      <span className="muted">({it.minutes} mins.)</span>
-                    ) : null}
-                  </div>
-
-                  {/* Right */}
-                  {!isTwoCol ? (
-                    <div className="right">
-                      {it.noteLabel ? (
-                        <>
-                          <div>
-                            <span className="muted" style={{ fontWeight: 700 }}>
-                              {it.noteLabel}
-                            </span>
-                          </div>
-                          <div>{it.assigned?.[0] || ""}</div>
-                        </>
+              {(sec.items || []).map((it, i) => {
+                const isSong = it.type === "song";
+                return (
+                  <div className={`row ${isTwoCol && !isSong ? "twocol" : ""}`} key={i}>
+                    <div className="left">
+                      {isSong ? (
+                        // Canción dentro de sección: bullet igual que canciones sueltas
+                        <ul className="clean" style={{ margin: 0 }}>
+                          <li>{it.text}</li>
+                        </ul>
                       ) : (
-                        it.assigned?.[0] || ""
+                        <>
+                          {it.number ? `${it.number}. ` : ""}
+                          {it.text}{" "}
+                          {typeof it.minutes === "number" ? (
+                            <span className="muted">({it.minutes} mins.)</span>
+                          ) : null}
+                        </>
                       )}
                     </div>
-                  ) : (
-                    <div className="right">
-                      <div>{it.assigned?.[0] || ""}</div>
-                      <div>{it.assigned?.[1] || ""}</div>
-                    </div>
-                  )}
-                </div>
-              ))}
+
+                    {/* Zona derecha solo para puntos normales */}
+                    {!isSong && (
+                      !isTwoCol ? (
+                        <div className="right">
+                          {it.noteLabel ? (
+                            <>
+                              <div>
+                                <span className="muted" style={{ fontWeight: 700 }}>
+                                  {it.noteLabel}
+                                </span>
+                              </div>
+                              <div>{it.assigned?.[0] || ""}</div>
+                            </>
+                          ) : (
+                            it.assigned?.[0] || ""
+                          )}
+                        </div>
+                      ) : (
+                        <div className="right">
+                          <div>{it.assigned?.[0] || ""}</div>
+                          <div>{it.assigned?.[1] || ""}</div>
+                        </div>
+                      )
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {/* Bloquecitos extra solo para "Nuestra vida cristiana" si quieres igualito al template */}

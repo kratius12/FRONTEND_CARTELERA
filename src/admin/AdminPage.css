@@ -1,0 +1,562 @@
+/* ============================================================
+   ADMIN PANEL — Estilos
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+/* ─── Override de estilos globales de Vite solo en el admin ─── */
+body:has(.admin-layout) {
+  display: block;
+  place-items: unset;
+  background-color: #0f1117;
+}
+
+#root:has(.admin-layout) {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+/* ─── Layout general ─── */
+.admin-layout {
+  min-height: 100vh;
+  width: 100%;
+  padding-top: 60px;
+  background: #0f1117;
+  color: #e2e8f0;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+}
+
+/* ─── Header / Nav ─── */
+.admin-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 32px;
+  height: 60px;
+  background: #1a1d27;
+  border-bottom: 1px solid #2d3148;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 100;
+}
+
+.admin-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.admin-header__logo {
+  font-size: 20px;
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.admin-tab {
+  padding: 6px 18px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.admin-tab:hover {
+  background: #2d3148;
+  color: #e2e8f0;
+}
+
+.admin-tab.active {
+  background: #3b4fd8;
+  color: #fff;
+}
+
+/* ─── Contenido ─── */
+.admin-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+/* ─── Estado vacío / cargando ─── */
+.admin-status {
+  text-align: center;
+  color: #64748b;
+  padding: 48px 0;
+  font-size: 15px;
+}
+
+.admin-status.error {
+  color: #f87171;
+}
+
+/* ─── Toolbar de lista ─── */
+.list-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.list-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.list-badge {
+  background: #3b4fd8;
+  color: #fff;
+  border-radius: 99px;
+  padding: 1px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ─── Filtros ─── */
+.filter-group {
+  display: flex;
+  gap: 6px;
+}
+
+.filter-btn {
+  padding: 5px 14px;
+  border: 1px solid #2d3148;
+  border-radius: 8px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+
+.filter-btn:hover {
+  border-color: #3b4fd8;
+  color: #e2e8f0;
+}
+
+.filter-btn.active {
+  background: #3b4fd8;
+  border-color: #3b4fd8;
+  color: #fff;
+}
+
+/* ─── Tabla ─── */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #1a1d27;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #2d3148;
+}
+
+.admin-table th {
+  text-align: left;
+  padding: 12px 16px;
+  background: #1e2233;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #2d3148;
+}
+
+.admin-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #1e2233;
+  color: #cbd5e1;
+}
+
+.admin-table tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-table tr:hover td {
+  background: #1e2233;
+}
+
+.row-current td {
+  background: rgba(59, 79, 216, 0.08) !important;
+}
+
+.row-old td {
+  opacity: 0.6;
+}
+
+/* ─── Badges de estado ─── */
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge--current {
+  background: rgba(52, 211, 153, 0.15);
+  color: #34d399;
+  border: 1px solid #34d39940;
+}
+
+.badge--old {
+  background: rgba(100, 116, 139, 0.15);
+  color: #64748b;
+  border: 1px solid #64748b40;
+}
+
+.badge--future {
+  background: rgba(96, 165, 250, 0.15);
+  color: #60a5fa;
+  border: 1px solid #60a5fa40;
+}
+
+/* ─── Botones de acción ─── */
+.link-btn {
+  color: #60a5fa;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.link-btn:hover {
+  color: #93c5fd;
+}
+
+.publish-btn {
+  padding: 6px 14px;
+  background: #1e3a5f;
+  border: 1px solid #2563eb;
+  color: #60a5fa;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.publish-btn:hover:not(:disabled) {
+  background: #2563eb;
+  color: #fff;
+}
+
+.publish-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.icon-btn {
+  padding: 6px 12px;
+  background: #1e2233;
+  border: 1px solid #2d3148;
+  color: #94a3b8;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+
+.icon-btn:hover {
+  border-color: #3b4fd8;
+  color: #e2e8f0;
+}
+
+.icon-btn.danger {
+  border-color: #ef444440;
+  color: #f87171;
+}
+
+.icon-btn.danger:hover {
+  background: #ef444415;
+}
+
+.icon-btn.small {
+  padding: 3px 8px;
+  font-size: 12px;
+}
+
+/* ─── Toast ─── */
+.toast {
+  position: fixed;
+  top: 72px;
+  right: 24px;
+  background: #1e2233;
+  border: 1px solid #2d3148;
+  color: #e2e8f0;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-weight: 500;
+  z-index: 9999;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  animation: slideIn 0.2s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ──────────────────────────────────────────
+   FORMULARIO
+   ────────────────────────────────────────── */
+.prog-form {
+  max-width: 860px;
+}
+
+.form-section-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 24px;
+}
+
+.form-fieldset {
+  border: 1px solid #2d3148;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.form-fieldset legend {
+  padding: 0 10px;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.section-block {
+  border-color: #3b4fd830;
+  background: #1a1d27;
+}
+
+.form-row {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-row--2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.form-row--3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.form-row--inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.form-group input,
+.form-group select,
+.prog-form input,
+.prog-form select {
+  background: #0f1117;
+  border: 1px solid #2d3148;
+  border-radius: 8px;
+  color: #e2e8f0;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.15s;
+  outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.prog-form input:focus,
+.prog-form select:focus {
+  border-color: #3b4fd8;
+}
+
+.form-group input::placeholder,
+.prog-form input::placeholder {
+  color: #475569;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #94a3b8;
+  font-size: 13px;
+  cursor: pointer;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+/* ─── Ítems dentro de sección ─── */
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.item-block {
+  background: #0f1117;
+  border: 1px solid #2d3148;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.item-num {
+  color: #3b4fd8;
+  font-weight: 700;
+  min-width: 24px;
+}
+
+/* ─── Botones de agregar ─── */
+.add-btn {
+  background: transparent;
+  border: 1px dashed #2d3148;
+  color: #64748b;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.15s;
+}
+
+.add-btn:hover {
+  border-color: #3b4fd8;
+  color: #60a5fa;
+}
+
+.add-section-btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: 1px dashed #3b4fd860;
+  border-radius: 12px;
+  color: #60a5fa;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 24px;
+  transition: all 0.15s;
+}
+
+.add-section-btn:hover {
+  background: #3b4fd810;
+  border-color: #3b4fd8;
+}
+
+/* ─── Acciones del formulario ─── */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.submit-btn {
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #3b4fd8, #6366f1);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.submit-btn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.muted {
+  color: #64748b;
+  font-style: italic;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 640px) {
+
+  .form-row--2,
+  .form-row--3 {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-header {
+    padding: 0 16px;
+    flex-wrap: wrap;
+    height: auto;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .admin-content {
+    padding: 20px 16px;
+  }
+}
