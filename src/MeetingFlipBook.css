@@ -1,8 +1,4 @@
 :root {
-  --ink: #111;
-  --muted: #555;
-  --rule: #222;
-
   --bar-gray: #4b4b4b;
   --bar-gold: #b8860b;
   --bar-wine: #7a0026;
@@ -15,21 +11,23 @@
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
+.flipbook-container {
   padding: 24px;
-  background: #f3f3f3;
+  background: var(--bg-secondary);
   font-family: Arial, Helvetica, sans-serif;
-  color: var(--ink);
+  color: var(--text-primary);
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .page {
   width: min(var(--page-w), 100%);
   margin: 0 auto;
-  background: #fff;
+  background: var(--bg-primary);
   padding: 18px var(--pad) 22px;
   border-radius: 8px;
   box-shadow: 0 8px 28px rgba(0, 0, 0, .08);
+  transition: background-color 0.3s ease;
 }
 
 /* Top line + header */
@@ -46,7 +44,7 @@ body {
   text-transform: uppercase;
   font-size: 14px;
   padding-bottom: 6px;
-  border-bottom: 2px solid var(--rule);
+  border-bottom: 2px solid var(--border-color);
   min-width: 110px;
 }
 
@@ -61,7 +59,7 @@ body {
 }
 
 .header-rule {
-  border-top: 2px solid var(--rule);
+  border-top: 2px solid var(--border-color);
   margin: 10px 0 14px;
 }
 
@@ -81,14 +79,14 @@ body {
 .meta-right {
   justify-self: end;
   font-size: 14px;
-  color: var(--ink);
+  color: var(--text-primary);
   line-height: 1.6;
   text-align: left;
   min-width: 260px;
 }
 
 .meta-right .label {
-  color: var(--muted);
+  color: var(--text-secondary);
   font-weight: 600;
   display: inline-block;
   width: 86px;
@@ -171,7 +169,7 @@ ul.clean li {
   gap: 10px;
   font-size: 12px;
   font-weight: 700;
-  color: var(--muted);
+  color: var(--text-secondary);
   text-transform: capitalize;
   justify-items: start;
 }
@@ -192,7 +190,7 @@ ul.clean li {
 
 /* Small helpers */
 .muted {
-  color: var(--muted);
+  color: var(--text-secondary);
 }
 
 .spacer {
@@ -201,29 +199,52 @@ ul.clean li {
 
 /* Responsive */
 @media (max-width: 720px) {
-  body {
-    padding: 12px;
+  .flipbook-container {
+    padding: 12px 6px; /* Menos padding lateral en móvil */
+  }
+
+  .title {
+    font-size: 22px; /* Fluid typography approach para móviles pequeños */
+  }
+
+  .page {
+    padding: 14px 12px 18px; /* Reducimos paddings muertos internos */
+  }
+
+  .oriente {
+    display: none; /* En celular "ORIENTE" quita espacio valioso */
   }
 
   .meta {
     grid-template-columns: 1fr;
+    gap: 10px;
   }
 
   .meta-right {
     justify-self: start;
+    width: 100%;
   }
 
   .row,
   .twohead {
     grid-template-columns: 1fr;
+    gap: 4px; /* Mayor proximidad vertical que horizontal */
   }
 
   .row .right {
     white-space: normal;
+    padding-left: 20px; /* Indentación tipo sub-lista */
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
+  .row.twocol .right {
+    margin-bottom: 12px;
   }
 
   .twohead .right {
     justify-items: start;
+    display: none; /* Hide header names in mobile, flows naturally */
   }
 }
 
@@ -234,37 +255,42 @@ ul.clean li {
   gap: 10px;
   padding: 10px 12px;
   margin-bottom: 14px;
-  background: #fafafa;
-  border: 1px solid #e6e6e6;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .pager__chip {
   padding: 6px 10px;
   border-radius: 999px;
-  border: 1px solid #e6e6e6;
-  background: #fff;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
   font-weight: 700;
   font-size: 13px;
+  color: var(--text-primary);
 }
 
 .pager__btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   padding: 8px 12px;
   border-radius: 10px;
-  border: 1px solid #d8d8d8;
-  background: #fff;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   cursor: pointer;
   font-weight: 700;
   transition: transform 0.05s ease, box-shadow 0.12s ease, background 0.12s ease;
 }
 
 .pager__btn:hover {
-  background: #f5f5f5;
+  background: var(--bg-primary);
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+  border-color: var(--accent-light, var(--accent-color));
 }
 
 .pager__btn:active {
@@ -283,7 +309,7 @@ ul.clean li {
 
 .pager__hint {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .pager__goto {
@@ -296,42 +322,60 @@ ul.clean li {
   width: 78px;
   padding: 8px 10px;
   border-radius: 10px;
-  border: 1px solid #d8d8d8;
+  border: 1px solid var(--border-color);
   outline: none;
-  background: #fff;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   font-weight: 700;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .pager__input:focus {
-  border-color: #bdbdbd;
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 .pager__go {
   padding: 8px 12px;
   border-radius: 10px;
-  border: 1px solid #d8d8d8;
-  background: #111;
+  border: 1px solid var(--accent-color);
+  background: var(--accent-color);
   color: #fff;
   cursor: pointer;
   font-weight: 800;
+  transition: filter 0.2s ease;
 }
 
 .pager__go:hover {
-  filter: brightness(1.05);
+  filter: brightness(1.15);
 }
 
 .pager__go:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-secondary);
 }
 
 @media (max-width: 720px) {
   .pager {
     flex-wrap: wrap;
     gap: 8px;
+    justify-content: center; /* Centrar botones en celular */
+  }
+  .pager__btn {
+    flex: 1 1 45%; /* En celular, Anter./Sigui. toman el mismo ancho grande */
+    justify-content: center;
   }
   .pager__spacer {
     display: none;
+  }
+  .pager__goto {
+    width: 100%; /* Forzar input a una línea nueva completa */
+    justify-content: center;
+    margin-top: 4px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 10px;
   }
 }

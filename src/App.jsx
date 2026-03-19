@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import MeetingFlipBook from "./MeetingFlipBook";
+import ThemeToggle from "./components/ThemeToggle";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API = import.meta.env.VITE_API_URL || "";
 
 export default function App() {
   const { id } = useParams();
@@ -74,15 +75,31 @@ export default function App() {
   if (!program) return null;
 
   return (
-    <MeetingFlipBook
-      program={program}
-      programId={programId}
-      onPrev={() => goTo(programId - 1)}
-      onNext={() => goTo(programId + 1)}
-      // 👇 isLast solo cuando nextExists ya se sabe
-      isLast={nextExists === false}
-      // opcional: para mostrar “verificando…”
-      checkingNext={nextExists === null}
-    />
+    <>
+      <MeetingFlipBook
+        program={program}
+        programId={programId}
+        onPrev={() => goTo(programId - 1)}
+        onNext={() => goTo(programId + 1)}
+        // 👇 isLast solo cuando nextExists ya se sabe
+        isLast={nextExists === false}
+        // opcional: para mostrar “verificando…”
+        checkingNext={nextExists === null}
+      />
+      {/* Botón Flotante para cambiar aspecto visual (Mobile/PC) */}
+      <div 
+        className="floating-theme-toggle no-print" 
+        style={{
+          position: "fixed",
+          bottom: "20px",
+          right: "20px",
+          zIndex: 9999,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          borderRadius: "50%"
+        }}
+      >
+        <ThemeToggle />
+      </div>
+    </>
   );
 }

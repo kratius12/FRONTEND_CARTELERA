@@ -54,7 +54,7 @@ export default function MeetingFlipBook({
       <ul className="clean">
         {bullets.map((p, i) => (
           <li key={i}>
-            {p.text}
+            {p.type === "song" && !p.text?.toLowerCase().startsWith("canción") ? `Canción ${p.text}` : p.text}
             {p.minutes ? (
               <span className="muted">&nbsp;&nbsp;({p.minutes} min.)</span>
             ) : null}
@@ -99,6 +99,7 @@ export default function MeetingFlipBook({
      RENDER
   ========================== */
   return (
+    <div className="flipbook-container">
     <main className="page">
       {/* ===== PAGINADOR BONITO ===== */}
       <div className="pager">
@@ -111,7 +112,6 @@ export default function MeetingFlipBook({
           <span aria-hidden>←</span> Anterior
         </button>
 
-        <div className="pager__chip">Programa #{programId}</div>
 
         <button
           className="pager__btn"
@@ -276,5 +276,6 @@ export default function MeetingFlipBook({
         </section>
       )}
     </main>
+    </div>
   );
 }
