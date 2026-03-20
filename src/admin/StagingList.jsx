@@ -288,7 +288,7 @@ export default function StagingList({ onPublished, onEdit }) {
                                     <button
                                         className="admin-sidebar-logout"
                                         style={{ padding: "6px 10px", fontSize: "12px", background: "#fee2e2", marginLeft: "8px" }}
-                                        onClick={() => handleDelete(p.id, p.title)}
+                                        onClick={() => handleDelete(p)}
                                         title="Eliminar borrador permanentemente"
                                     >
                                         🗑️ Eliminar

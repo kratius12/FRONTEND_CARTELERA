@@ -213,7 +213,7 @@ export default function ProgramList({ onEdit }) {
                                         <button
                                             className="admin-sidebar-logout"
                                             style={{ padding: "6px 10px", fontSize: "12px", background: "#fee2e2" }}
-                                            onClick={() => handleDelete(p.id)}
+                                            onClick={() => handleDelete(p)}
                                             title="Eliminar permanentemente"
                                         >
                                             🗑️ Eliminar
