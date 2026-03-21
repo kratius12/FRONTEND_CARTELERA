@@ -1,8 +1,9 @@
 // src/admin/ProgramForm.jsx
 // Formulario dinámico para crear o editar un programa en staging.
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API = import.meta.env.VITE_API_URL || "";
 
 // Plantilla de sección vacía
 const emptySection = () => ({
@@ -56,6 +57,7 @@ function extractPostParts(parts = []) {
 }
 
 export default function ProgramForm({ onSaved, initialData, editSource }) {
+    const { token, logout } = useContext(AuthContext);
     // editSource: 'staging' | 'published' | undefined (nuevo)
     const isEditing = !!initialData;
 
@@ -102,14 +104,28 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
 
     // ─── Helpers para pre/post parts ───
     const updatePrePart = (i, field, val) => {
-        setPreParts((prev) => prev.map((p, idx) => (idx === i ? { ...p, [field]: val } : p)));
+        setPreParts((prev) => prev.map((p, idx) => {
+            if (idx !== i) return p;
+            let updated = { ...p, [field]: val };
+            if (updated.type === "song" && updated.text && /^\d+$/.test(updated.text)) {
+                updated.text = `Canción ${updated.text}`;
+            }
+            return updated;
+        }));
     };
     const addPrePart = () => setPreParts((p) => [...p, { type: "bullet", text: "", minutes: "" }]);
     const removePrePart = (i) => setPreParts((p) => p.filter((_, idx) => idx !== i));
 
     // ─── Helpers para post parts ───
     const updatePostPart = (i, field, val) => {
-        setPostParts((prev) => prev.map((p, idx) => (idx === i ? { ...p, [field]: val } : p)));
+        setPostParts((prev) => prev.map((p, idx) => {
+            if (idx !== i) return p;
+            let updated = { ...p, [field]: val };
+            if (updated.type === "song" && updated.text && /^\d+$/.test(updated.text)) {
+                updated.text = `Canción ${updated.text}`;
+            }
+            return updated;
+        }));
     };
     const addPostPart = () => setPostParts((p) => [...p, { type: "song", text: "", minutes: "" }]);
     const removePostPart = (i) => setPostParts((p) => p.filter((_, idx) => idx !== i));
@@ -143,16 +159,20 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
 
     const updateItem = (si, ii, field, val) => {
         setSections((prev) =>
-            prev.map((s, sIdx) =>
-                sIdx === si
-                    ? {
-                        ...s,
-                        items: s.items.map((item, iIdx) =>
-                            iIdx === ii ? { ...item, [field]: val } : item
-                        ),
-                    }
-                    : s
-            )
+            prev.map((s, sIdx) => {
+                if (sIdx !== si) return s;
+                return {
+                    ...s,
+                    items: s.items.map((item, iIdx) => {
+                        if (iIdx !== ii) return item;
+                        let updated = { ...item, [field]: val };
+                        if (updated.type === "song" && updated.text && /^\d+$/.test(updated.text)) {
+                            updated.text = `Canción ${updated.text}`;
+                        }
+                        return updated;
+                    }),
+                };
+            })
         );
     };
 
@@ -252,9 +272,16 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
 
             const r = await fetch(url, {
                 method,
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}` 
+                },
                 body: JSON.stringify({ week_start: weekStart, week_end: weekEnd, payload }),
             });
+            if (r.status === 401 || r.status === 403) {
+                logout();
+                throw new Error("Sesión expirada");
+            }
             const data = await r.json();
             if (!r.ok) throw new Error(data.message);
 

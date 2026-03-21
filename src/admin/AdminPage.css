@@ -12,7 +12,6 @@
 body:has(.admin-layout) {
   display: block;
   place-items: unset;
-  background-color: #0f1117;
 }
 
 #root:has(.admin-layout) {
@@ -24,78 +23,105 @@ body:has(.admin-layout) {
 
 /* ─── Layout general ─── */
 .admin-layout {
+  display: flex;
   min-height: 100vh;
-  width: 100%;
-  padding-top: 60px;
-  background: #0f1117;
-  color: #e2e8f0;
+  width: 100vw;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   font-family: 'Inter', sans-serif;
   font-size: 14px;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* ─── Header / Nav ─── */
-.admin-header {
+/* ─── Sidebar ─── */
+.admin-sidebar {
+  width: 250px;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
   display: flex;
-  align-items: center;
-  gap: 24px;
-  padding: 0 32px;
-  height: 60px;
-  background: #1a1d27;
-  border-bottom: 1px solid #2d3148;
+  flex-direction: column;
   position: fixed;
-  top: 0;
   left: 0;
-  right: 0;
-  width: 100%;
+  top: 0;
+  bottom: 0;
   z-index: 100;
+  padding: 24px 0;
 }
 
-.admin-header__brand {
+.admin-sidebar__brand {
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: #fff;
+  gap: 12px;
+  padding: 0 24px 24px;
+  border-bottom: 1px solid var(--sidebar-border);
   font-weight: 700;
-  font-size: 16px;
-  white-space: nowrap;
+  font-size: 18px;
+  margin-bottom: 16px;
+  color: var(--text-primary);
 }
 
-.admin-header__logo {
-  font-size: 20px;
-}
-
-.admin-tabs {
+.admin-sidebar__nav {
   display: flex;
-  gap: 4px;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 16px;
+  flex: 1;
 }
 
 .admin-tab {
-  padding: 6px 18px;
+  padding: 12px 16px;
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
+  text-align: left;
   transition: background 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
 }
 
 .admin-tab:hover {
-  background: #2d3148;
-  color: #e2e8f0;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .admin-tab.active {
-  background: #3b4fd8;
+  background: var(--accent-color);
   color: #fff;
+}
+
+.admin-sidebar__footer {
+  padding: 16px;
+  border-top: 1px solid var(--sidebar-border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-sidebar-logout {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.admin-sidebar-logout:hover {
+  opacity: 0.8;
 }
 
 /* ─── Contenido ─── */
 .admin-content {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 32px 24px;
+  flex: 1;
+  margin-left: 250px;
+  max-width: calc(100vw - 250px);
+  padding: 40px 48px;
 }
 
 /* ─── Estado vacío / cargando ─── */
@@ -115,15 +141,15 @@ body:has(.admin-layout) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   flex-wrap: wrap;
   gap: 12px;
 }
 
 .list-title {
-  font-size: 18px;
+  font-size: 24px;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
   margin: 0;
   display: flex;
   align-items: center;
@@ -131,11 +157,11 @@ body:has(.admin-layout) {
 }
 
 .list-badge {
-  background: #3b4fd8;
+  background: var(--accent-color);
   color: #fff;
   border-radius: 99px;
-  padding: 1px 10px;
-  font-size: 12px;
+  padding: 2px 12px;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -171,28 +197,29 @@ body:has(.admin-layout) {
 .admin-table {
   width: 100%;
   border-collapse: collapse;
-  background: #1a1d27;
+  background: var(--bg-secondary);
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid #2d3148;
+  border: 1px solid var(--border-color);
 }
 
 .admin-table th {
   text-align: left;
-  padding: 12px 16px;
-  background: #1e2233;
-  color: #64748b;
-  font-size: 12px;
+  padding: 14px 20px;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-size: 13px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid #2d3148;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .admin-table td {
-  padding: 12px 16px;
-  border-bottom: 1px solid #1e2233;
-  color: #cbd5e1;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 14px;
 }
 
 .admin-table tr:last-child td {
@@ -200,71 +227,53 @@ body:has(.admin-layout) {
 }
 
 .admin-table tr:hover td {
-  background: #1e2233;
+  background: var(--bg-primary);
 }
 
 .row-current td {
-  background: rgba(59, 79, 216, 0.08) !important;
+  background: rgba(59, 130, 246, 0.05) !important;
 }
 
 .row-old td {
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
 /* ─── Badges de estado ─── */
 .badge {
   display: inline-block;
-  padding: 2px 10px;
+  padding: 4px 12px;
   border-radius: 99px;
   font-size: 12px;
   font-weight: 600;
 }
 
-.badge--current {
-  background: rgba(52, 211, 153, 0.15);
-  color: #34d399;
-  border: 1px solid #34d39940;
-}
-
-.badge--old {
-  background: rgba(100, 116, 139, 0.15);
-  color: #64748b;
-  border: 1px solid #64748b40;
-}
-
-.badge--future {
-  background: rgba(96, 165, 250, 0.15);
-  color: #60a5fa;
-  border: 1px solid #60a5fa40;
-}
-
 /* ─── Botones de acción ─── */
 .link-btn {
-  color: #60a5fa;
+  color: var(--accent-color);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.15s;
 }
 
 .link-btn:hover {
-  color: #93c5fd;
+  color: var(--accent-hover);
 }
 
 .publish-btn {
-  padding: 6px 14px;
-  background: #1e3a5f;
-  border: 1px solid #2563eb;
-  color: #60a5fa;
+  padding: 8px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--accent-color);
+  color: var(--accent-color);
   border-radius: 8px;
   cursor: pointer;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.15s;
   white-space: nowrap;
 }
 
 .publish-btn:hover:not(:disabled) {
-  background: #2563eb;
+  background: var(--accent-color);
   color: #fff;
 }
 
@@ -274,60 +283,55 @@ body:has(.admin-layout) {
 }
 
 .icon-btn {
-  padding: 6px 12px;
-  background: #1e2233;
-  border: 1px solid #2d3148;
-  color: #94a3b8;
+  padding: 8px 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
   border-radius: 8px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
   transition: all 0.15s;
 }
 
 .icon-btn:hover {
-  border-color: #3b4fd8;
-  color: #e2e8f0;
+  border-color: var(--accent-color);
+  color: var(--accent-color);
 }
 
 .icon-btn.danger {
   border-color: #ef444440;
-  color: #f87171;
+  color: #ef4444;
 }
 
 .icon-btn.danger:hover {
-  background: #ef444415;
-}
-
-.icon-btn.small {
-  padding: 3px 8px;
-  font-size: 12px;
+  background: #fef2f2;
+  border-color: #ef4444;
 }
 
 /* ─── Toast ─── */
 .toast {
   position: fixed;
-  top: 72px;
+  top: 24px;
   right: 24px;
-  background: #1e2233;
-  border: 1px solid #2d3148;
-  color: #e2e8f0;
-  padding: 14px 20px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 14px 24px;
   border-radius: 12px;
-  font-weight: 500;
+  font-weight: 600;
   z-index: 9999;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  animation: slideIn 0.2s ease;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-20px) scale(0.95);
   }
-
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -335,18 +339,18 @@ body:has(.admin-layout) {
    FORMULARIO
    ────────────────────────────────────────── */
 .prog-form {
-  max-width: 860px;
+  max-width: 900px;
 }
 
 .form-section-title {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
   margin: 0 0 24px;
 }
 
 .form-fieldset {
-  border: 1px solid #2d3148;
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
@@ -354,7 +358,7 @@ body:has(.admin-layout) {
 
 .form-fieldset legend {
   padding: 0 10px;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-size: 13px;
   font-weight: 600;
   text-transform: uppercase;
@@ -362,8 +366,8 @@ body:has(.admin-layout) {
 }
 
 .section-block {
-  border-color: #3b4fd830;
-  background: #1a1d27;
+  border-color: var(--border-color);
+  background: var(--bg-secondary);
 }
 
 .form-row {
@@ -400,7 +404,7 @@ body:has(.admin-layout) {
 .form-group label {
   font-size: 12px;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -409,10 +413,10 @@ body:has(.admin-layout) {
 .form-group select,
 .prog-form input,
 .prog-form select {
-  background: #0f1117;
-  border: 1px solid #2d3148;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  color: #e2e8f0;
+  color: var(--text-primary);
   padding: 8px 12px;
   font-size: 14px;
   font-family: inherit;
@@ -424,19 +428,20 @@ body:has(.admin-layout) {
 .form-group select:focus,
 .prog-form input:focus,
 .prog-form select:focus {
-  border-color: #3b4fd8;
+  border-color: var(--accent-color);
 }
 
 .form-group input::placeholder,
 .prog-form input::placeholder {
-  color: #475569;
+  color: var(--text-secondary);
+  opacity: 0.6;
 }
 
 .checkbox-label {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-size: 13px;
   cursor: pointer;
   text-transform: none !important;
@@ -452,14 +457,14 @@ body:has(.admin-layout) {
 }
 
 .item-block {
-  background: #0f1117;
-  border: 1px solid #2d3148;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 12px;
 }
 
 .item-num {
-  color: #3b4fd8;
+  color: var(--accent-color);
   font-weight: 700;
   min-width: 24px;
 }
@@ -467,8 +472,8 @@ body:has(.admin-layout) {
 /* ─── Botones de agregar ─── */
 .add-btn {
   background: transparent;
-  border: 1px dashed #2d3148;
-  color: #64748b;
+  border: 1px dashed var(--border-color);
+  color: var(--text-secondary);
   border-radius: 8px;
   padding: 7px 16px;
   font-size: 13px;
@@ -478,8 +483,8 @@ body:has(.admin-layout) {
 }
 
 .add-btn:hover {
-  border-color: #3b4fd8;
-  color: #60a5fa;
+  border-color: var(--accent-color);
+  color: var(--accent-color);
 }
 
 .add-section-btn {

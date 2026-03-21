@@ -1,13 +1,17 @@
 // src/admin/AdminPage.jsx
-import { useState } from "react";
+import { useState, useContext } from "react";
 import ProgramList from "./ProgramList";
 import StagingList from "./StagingList";
 import ProgramForm from "./ProgramForm";
+import UserManagement from "./UserManagement";
+import ThemeToggle from "../components/ThemeToggle";
+import { AuthContext } from "../context/AuthContext";
 import "./AdminPage.css";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API = import.meta.env.VITE_API_URL || "";
 
 export default function AdminPage() {
+    const { logout, token } = useContext(AuthContext);
     // 'published' | 'staging' | 'new' | 'edit'
     const [tab, setTab] = useState("published");
     const [refreshKey, setRefreshKey] = useState(0);
@@ -32,7 +36,15 @@ export default function AdminPage() {
                     url = `${API}/api/programs/${program.id}`;
                 }
 
-                const r = await fetch(url);
+                const r = await fetch(url, {
+                    headers: {
+                      Authorization: `Bearer ${token}`
+                    }
+                });
+                if (r.status === 401 || r.status === 403) {
+                  logout();
+                  throw new Error("Sesión expirada");
+                }
                 if (!r.ok) throw new Error("No se pudo cargar el programa");
                 const data = await r.json();
 
@@ -65,37 +77,58 @@ export default function AdminPage() {
 
     return (
         <div className="admin-layout">
-            <header className="admin-header">
-                <div className="admin-header__brand">
+            <aside className="admin-sidebar">
+                <div className="admin-sidebar__brand">
                     <span className="admin-header__logo">📋</span>
-                    <span className="admin-header__title">Cartelera — Admin</span>
+                    <span>Admin Panel</span>
                 </div>
-                <nav className="admin-tabs">
+                
+                <nav className="admin-sidebar__nav">
                     <button
                         className={`admin-tab ${tab === "published" ? "active" : ""}`}
                         onClick={() => setTab("published")}
                     >
-                        Publicados
+                        📚 Publicados
                     </button>
                     <button
                         className={`admin-tab ${tab === "staging" ? "active" : ""}`}
                         onClick={() => setTab("staging")}
                     >
-                        Temporal
+                        ⏳ Temporal
                     </button>
                     <button
                         className={`admin-tab ${tab === "new" ? "active" : ""}`}
                         onClick={() => { setEditingProgram(null); setTab("new"); }}
                     >
-                        + Nuevo programa
+                        ➕ Nuevo Programa
                     </button>
+                    <button
+                        className={`admin-tab ${tab === "users" ? "active" : ""}`}
+                        onClick={() => { setEditingProgram(null); setTab("users"); }}
+                    >
+                        👥 Gestión Usuarios
+                    </button>
+
                     {tab === "edit" && editingProgram && (
                         <button className="admin-tab active" disabled>
                             ✏️ Editando #{editingProgram.id}
                         </button>
                     )}
                 </nav>
-            </header>
+
+                <div className="admin-sidebar__footer">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                         <ThemeToggle />
+                         <button 
+                             className="admin-sidebar-logout" 
+                             onClick={logout}
+                             title="Cerrar Sesión"
+                         >
+                             Salir 🚪
+                         </button>
+                    </div>
+                </div>
+            </aside>
 
             <main className="admin-content">
                 {loadingEdit && (
@@ -125,6 +158,9 @@ export default function AdminPage() {
                             setTab("staging");
                         }}
                     />
+                )}
+                {!loadingEdit && tab === "users" && (
+                    <UserManagement />
                 )}
                 {!loadingEdit && tab === "edit" && editingProgram && (
                     <ProgramForm
