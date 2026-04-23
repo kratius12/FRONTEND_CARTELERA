@@ -4,12 +4,16 @@ import CurrentProgramRedirect from "./CurrentProgramRedirect";
 import AdminPage from "./admin/AdminPage";
 import Login from "./components/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
+import StagingPreview from "./StagingPreview";
+import CleaningSlide from "./CleaningSlide";
 
 export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<CurrentProgramRedirect />} />
       <Route path="/programs/:id" element={<App />} />
+      <Route path="/staging/:id" element={<StagingPreview />} />
+      <Route path="/aseo" element={<CleaningSlide />} />
       <Route path="/login" element={<Login />} />
       <Route 
         path="/admin" 

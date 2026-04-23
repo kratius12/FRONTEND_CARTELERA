@@ -63,6 +63,8 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
 
     const [saving, setSaving] = useState(false);
     const [toast, setToast] = useState("");
+    const [warnings, setWarnings] = useState([]);
+    const [pendingPayload, setPendingPayload] = useState(null);
 
     const [weekStart, setWeekStart] = useState("");
     const [weekEnd, setWeekEnd] = useState("");
@@ -139,6 +141,16 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
 
     const addSection = () => setSections((p) => [...p, emptySection()]);
     const removeSection = (si) => setSections((p) => p.filter((_, i) => i !== si));
+
+    const handleSectionTitleChange = (si, newTitle) => {
+        let newStyle = "gray";
+        if (newTitle === "Seamos mejores maestros") newStyle = "gold";
+        if (newTitle === "Nuestra vida cristiana") newStyle = "wine";
+
+        setSections((prev) =>
+            prev.map((s, idx) => (idx === si ? { ...s, title: newTitle, style: newStyle } : s))
+        );
+    };
 
     // ─── Helpers para ítems dentro de sección ───
     const addItem = (si) => {
@@ -217,6 +229,50 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
         );
     };
 
+    const handleGenerateProposal = async (si) => {
+        const section = sections[si];
+        if (!section || !section.items || section.items.length === 0) {
+            setToast("⚠️ No hay puntos en esta sección para asignar.");
+            setTimeout(() => setToast(""), 3000);
+            return;
+        }
+
+        setSaving(true);
+        setToast("Generando propuesta...");
+        
+        try {
+            const r = await fetch(`${API}/api/admin/programs/generate-proposal`, {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}` 
+                },
+                body: JSON.stringify({ items: section.items }),
+            });
+            
+            if (r.status === 401 || r.status === 403) {
+                logout();
+                throw new Error("Sesión expirada");
+            }
+            
+            const data = await r.json();
+            if (!r.ok) throw new Error(data.message || data.detail || "Error en el autogenerador");
+
+            // Overwrite section items with new items
+            setSections((prev) =>
+                prev.map((s, idx) => (idx === si ? { ...s, items: data.items } : s))
+            );
+
+            setToast("✅ Propuesta generada");
+            setTimeout(() => setToast(""), 2000);
+        } catch (err) {
+            setToast(`❌ ${err.message}`);
+            setTimeout(() => setToast(""), 3000);
+        } finally {
+            setSaving(false);
+        }
+    };
+
     // ─── SUBMIT ───
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -256,6 +312,35 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
             ],
         };
 
+        if (!pendingPayload) {
+            setSaving(true);
+            try {
+                const prog_id = isEditing && editSource === "published" ? initialData.id : null;
+                const r = await fetch(`${API}/api/admin/programs/validate`, {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}` 
+                    },
+                    body: JSON.stringify({ payload, prog_id }),
+                });
+                if (r.ok) {
+                    const data = await r.json();
+                    if (data.warnings && data.warnings.length > 0) {
+                        setWarnings(data.warnings);
+                        setPendingPayload(payload);
+                        setSaving(false);
+                        return; // Detener guardado para que decida el usuario
+                    }
+                }
+            } catch (err) {
+                console.error("Error al validar", err);
+            }
+        }
+
+        // Si llegó aquí es porque no hay advertencias, o porque el usuario dio clic en "Ignorar y Guardar"
+        const finalPayload = pendingPayload || payload;
+
         try {
             let url, method;
 
@@ -276,7 +361,7 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}` 
                 },
-                body: JSON.stringify({ week_start: weekStart, week_end: weekEnd, payload }),
+                body: JSON.stringify({ week_start: weekStart, week_end: weekEnd, payload: finalPayload }),
             });
             if (r.status === 401 || r.status === 403) {
                 logout();
@@ -299,6 +384,7 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
             setTimeout(() => setToast(""), 4000);
         } finally {
             setSaving(false);
+            setPendingPayload(null);
         }
     };
 
@@ -403,21 +489,37 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
                         </button>
                     </legend>
 
-                    <div className="form-row form-row--3">
+                    <div className="form-row form-row--2">
                         <div className="form-group">
-                            <label>Título de sección</label>
-                            <input type="text" value={sec.title} onChange={(e) => updateSection(si, "title", e.target.value)} placeholder="Ej: Tesoros de la Biblia" />
-                        </div>
-                        <div className="form-group">
-                            <label>Color de barra</label>
-                            <select value={sec.style} onChange={(e) => updateSection(si, "style", e.target.value)}>
-                                <option value="gray">Gris</option>
-                                <option value="gold">Dorado</option>
-                                <option value="wine">Vinotinto</option>
+                            <label>Sección del Programa</label>
+                            <select 
+                                value={sec.title} 
+                                onChange={(e) => handleSectionTitleChange(si, e.target.value)}
+                                required
+                            >
+                                <option value="" disabled>Seleccionar sección...</option>
+                                <option value="Tesoros de la biblia">Tesoros de la biblia</option>
+                                <option value="Seamos mejores maestros">Seamos mejores maestros</option>
+                                <option value="Nuestra vida cristiana">Nuestra vida cristiana</option>
+                                {/* Fallback temporal en caso de editar un documento con título diferente */}
+                                {sec.title && !["Tesoros de la biblia", "Seamos mejores maestros", "Nuestra vida cristiana"].includes(sec.title) && (
+                                    <option value={sec.title}>{sec.title} (Antiguo)</option>
+                                )}
                             </select>
                         </div>
-                        <div className="form-group" style={{ justifyContent: "flex-end", alignItems: "flex-end" }}>
-                            <label className="checkbox-label">
+                        <div className="form-group" style={{ justifyContent: "flex-end", alignItems: "center", flexDirection: "row", gap: "16px" }}>
+                            {sec.title === "Seamos mejores maestros" && (
+                                <button 
+                                    type="button" 
+                                    className="publish-btn" 
+                                    style={{ padding: '6px 12px', fontSize: '12px' }}
+                                    onClick={() => handleGenerateProposal(si)}
+                                    disabled={saving}
+                                >
+                                    ✨ Generar propuesta
+                                </button>
+                            )}
+                            <label className="checkbox-label" style={{ marginBottom: 0 }}>
                                 <input
                                     type="checkbox"
                                     checked={!!sec.columns}
@@ -548,6 +650,31 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
                         : (isEditing ? "💾 Guardar cambios" : "💾 Guardar como Temporal")}
                 </button>
             </div>
+
+            {/* ── MODAL DE ADVERTENCIAS ── */}
+            {warnings.length > 0 && (
+                <div className="modal-overlay">
+                    <div className="modal-content" style={{ maxWidth: 500 }}>
+                        <h3 style={{ color: "#d9534f", marginTop: 0 }}>⚠️ Advertencias de Reglas de Negocio</h3>
+                        <p style={{ fontSize: "14px", color: "#555", marginBottom: 15 }}>
+                            Se encontraron algunas reglas que no se están cumpliendo. ¿Deseas guardar de todos modos?
+                        </p>
+                        <ul style={{ fontSize: "14px", marginBottom: 20, paddingLeft: 20, color: "#333", textAlign: "left" }}>
+                            {warnings.map((w, i) => (
+                                <li key={i} style={{ marginBottom: 8 }}>{w}</li>
+                            ))}
+                        </ul>
+                        <div className="form-actions" style={{ justifyContent: "flex-end", gap: "10px" }}>
+                            <button type="button" className="icon-btn" onClick={() => { setWarnings([]); setPendingPayload(null); }}>
+                                Volver a Corregir
+                            </button>
+                            <button type="button" className="submit-btn" onClick={handleSubmit} disabled={saving}>
+                                Ignorar y Guardar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </form>
     );
 }

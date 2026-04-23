@@ -79,12 +79,9 @@ export default function App() {
       <MeetingFlipBook
         program={program}
         programId={programId}
-        onPrev={() => goTo(programId - 1)}
-        onNext={() => goTo(programId + 1)}
-        // 👇 isLast solo cuando nextExists ya se sabe
-        isLast={nextExists === false}
-        // opcional: para mostrar “verificando…”
-        checkingNext={nextExists === null}
+        onPrev={() => {}} 
+        onNext={() => {}} 
+        isLast={true}
       />
       {/* Botón Flotante para cambiar aspecto visual (Mobile/PC) */}
       <div 

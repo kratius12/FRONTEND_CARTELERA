@@ -198,53 +198,69 @@ ul.clean li {
 }
 
 /* Responsive */
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .flipbook-container {
-    padding: 12px 6px; /* Menos padding lateral en móvil */
+    padding: 0; /* Pantalla completa en celular, sin borde redundante */
+    padding-bottom: env(safe-area-inset-bottom, 20px); /* iPhone home indicator safe area */
   }
 
   .title {
-    font-size: 22px; /* Fluid typography approach para móviles pequeños */
+    font-size: clamp(20px, 5vw, 26px); /* Adaptive typography */
+    padding: 10px 10px;
+    line-height: 1.2;
   }
 
   .page {
-    padding: 14px 12px 18px; /* Reducimos paddings muertos internos */
+    padding: 16px 12px 24px;
+    border-radius: 0; 
+    box-shadow: none;
+    border: none;
   }
 
   .oriente {
-    display: none; /* En celular "ORIENTE" quita espacio valioso */
+    display: none;
   }
 
   .meta {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
   }
 
   .meta-right {
     justify-self: start;
+    min-width: unset;
     width: 100%;
   }
 
   .row,
   .twohead {
     grid-template-columns: 1fr;
-    gap: 4px; /* Mayor proximidad vertical que horizontal */
+    gap: 8px;
+    padding: 8px 0;
   }
 
   .row .right {
     white-space: normal;
-    padding-left: 20px; /* Indentación tipo sub-lista */
-    color: var(--text-secondary);
-    font-size: 14px;
+    padding-left: 0px;
+    font-size: 15px; /* Aumentamos fuente mínima para legibilidad en móvil */
+    border-top: 1px dashed var(--border-color);
+    padding-top: 4px;
   }
 
   .row.twocol .right {
-    margin-bottom: 12px;
+    grid-template-columns: 1fr; 
+    margin-bottom: 10px;
   }
 
   .twohead .right {
-    justify-items: start;
-    display: none; /* Hide header names in mobile, flows naturally */
+    display: none;
+  }
+
+  .bar {
+      font-size: 11px;
+      padding: 6px 10px;
   }
 }
 
