@@ -10,7 +10,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://backendcartelera-production-a48a.up.railway.app',
+        target: 'http://localhost:8000',
         changeOrigin: true,
       }
     }

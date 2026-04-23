@@ -160,70 +160,67 @@ export default function ProgramList({ onEdit }) {
             {filtered.length === 0 ? (
                 <div className="admin-status">No hay programas para mostrar.</div>
             ) : (
-                <table className="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Título</th>
-                            <th>Inicio semana</th>
-                            <th>Fin semana</th>
-                            <th>Estado</th>
-                            <th>Editar</th>
-                            <th>Ver</th>
-                            <th>Eliminar</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filtered.map((p) => {
-                            const old = isOlderThanOneMonth(p.week_end);
-                            const current = isCurrentWeek(p.week_start, p.week_end);
-                            return (
-                                <tr key={p.id} className={current ? "row-current" : old ? "row-old" : ""}>
-                                    <td>{p.title || <em className="muted">Sin título</em>}</td>
-                                    <td>{formatDate(p.week_start)}</td>
-                                    <td>{formatDate(p.week_end)}</td>
-                                    <td>
-                                        {current ? (
-                                            <span className="badge badge--current">Activo</span>
-                                        ) : old ? (
-                                            <span className="badge badge--old">Anterior</span>
-                                        ) : (
-                                            <span className="badge badge--future">Próximo</span>
-                                        )}
-                                    </td>
-                                    <td>
-                                        <button
-                                            className="icon-btn"
-                                            onClick={() => onEdit?.(p)}
-                                            title="Editar publicado"
-                                        >
-                                            ✏️ Editar
-                                        </button>
-                                    </td>
-                                    <td>
-                                        <a
-                                            href={`/programs/${p.id}`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="link-btn"
-                                        >
-                                            Ver →
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <button
-                                            className="admin-sidebar-logout"
-                                            style={{ padding: "6px 10px", fontSize: "12px", background: "#fee2e2" }}
-                                            onClick={() => handleDelete(p)}
-                                            title="Eliminar permanentemente"
-                                        >
-                                            🗑️ Eliminar
-                                        </button>
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
+                <div className="table-container">
+                    <table className="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Título</th>
+                                <th>Período</th>
+                                <th>Estado</th>
+                                <th style={{ textAlign: "right" }}>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filtered.map((p) => {
+                                const old = isOlderThanOneMonth(p.week_end);
+                                const current = isCurrentWeek(p.week_start, p.week_end);
+                                return (
+                                    <tr key={p.id} className={current ? "row-current" : old ? "row-old" : ""}>
+                                        <td data-label="Título"><strong>{p.title || "Sin título"}</strong></td>
+                                        <td data-label="Período">
+                                            <div style={{ fontSize: "13px" }}>{formatDate(p.week_start)}</div>
+                                            <div style={{ fontSize: "11px", opacity: 0.6 }}>al {formatDate(p.week_end)}</div>
+                                        </td>
+                                        <td data-label="Estado">
+                                            {current ? (
+                                                <span className="badge" style={{ background: "#dcfce7", color: "#166534" }}>Actual</span>
+                                            ) : old ? (
+                                                <span className="badge" style={{ background: "#f3f4f6", color: "#4b5563" }}>Antiguo</span>
+                                            ) : (
+                                                <span className="badge" style={{ background: "#dbeafe", color: "#1e40af" }}>Próximo</span>
+                                            )}
+                                        </td>
+                                        <td data-label="Acciones" className="actions-cell" style={{ textAlign: "right" }}>
+                                            <div style={{ display: "flex", gap: "6px", justifyContent: "flex-end" }}>
+                                                <button
+                                                    className="icon-btn"
+                                                    onClick={() => window.open(`${window.location.origin}/programs/${p.id}`, "_blank")}
+                                                    title="Ver cartelera pública"
+                                                >
+                                                    👁️
+                                                </button>
+                                                <button
+                                                    className="icon-btn"
+                                                    onClick={() => onEdit?.(p)}
+                                                    title="Editar programa"
+                                                >
+                                                    ✏️
+                                                </button>
+                                                <button
+                                                    className="icon-btn danger"
+                                                    onClick={() => handleDelete(p)}
+                                                    title="Eliminar de la lista"
+                                                >
+                                                    🗑️
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
             )}
         </div>
     );

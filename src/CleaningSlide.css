@@ -1,0 +1,38 @@
+.cleaning-slide-container {
+    width: 100vw;
+    height: 100vh;
+    background-color: #0b192c; /* Azul oscuro requerido */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.cleaning-slide-title {
+    color: #ffffff; /* Letras blancas */
+    font-size: 7vw; /* Tamaño dinámico según la pantalla */
+    font-weight: 800;
+    line-height: 1.4;
+    text-transform: uppercase;
+    text-shadow: 0 4px 12px rgba(0,0,0,0.4); /* Leve sombra para destacar */
+    padding: 20px;
+}
+
+.cleaning-slide-title .highlight {
+    color: #4ade80; /* Un tono verde moderno para destacar los grupos, puedes cambiarlo a blanco si prefieres todo blanco */
+}
+
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.blink {
+    animation: blink 1.5s infinite;
+}

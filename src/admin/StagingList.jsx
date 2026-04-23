@@ -2,7 +2,6 @@
 // Tabla de programas en STAGING con botón para publicar.
 import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import MeetingFlipBook from "../MeetingFlipBook";
 
 const API = import.meta.env.VITE_API_URL || "";
 
@@ -29,7 +28,6 @@ export default function StagingList({ onPublished, onEdit }) {
     const [error, setError] = useState("");
     const [publishing, setPublishing] = useState(null);
     const [toast, setToast] = useState("");
-    const [previewProgram, setPreviewProgram] = useState(null);
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(null);
     const [uploadingPdf, setUploadingPdf] = useState(false);
 
@@ -57,10 +55,10 @@ export default function StagingList({ onPublished, onEdit }) {
     };
 
     useEffect(() => {
-        if (token) { // Only load if token is available
+        if (token) {
             load();
         }
-    }, [token]); // Re-run if token changes
+    }, [token]);
 
     const handlePublish = async (id, title) => {
         if (!confirm(`¿Publicar "${title || `Programa #${id}`}"?\n\nSe moverá de staging a la cartelera principal.`)) return;
@@ -150,7 +148,7 @@ export default function StagingList({ onPublished, onEdit }) {
             setToast(`✅ ¡Éxito! ${data.message}`);
             setTimeout(() => {
                 setToast("");
-                load(); // Recargar la lista de temporales al instante
+                load();
             }, 2500);
         } catch (err) {
             setToast(`❌ Error: ${err.message}`);
@@ -163,26 +161,6 @@ export default function StagingList({ onPublished, onEdit }) {
 
     if (loading) return <div className="admin-status">Cargando staging…</div>;
     if (error) return <div className="admin-status error">{error}</div>;
-
-    if (previewProgram) {
-        return (
-            <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 9999, background: "var(--bg-primary)" }}>
-                <button 
-                    onClick={() => setPreviewProgram(null)} 
-                    style={{ position: "absolute", top: "20px", left: "20px", zIndex: 10000, background: "#ef4444", color: "#fff", border: "none", padding: "10px 20px", borderRadius: "8px", fontWeight: "bold", cursor: "pointer", boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }}
-                >
-                    🔙 Cerrar Vista Previa
-                </button>
-                <MeetingFlipBook 
-                    program={previewProgram.payload} 
-                    programId={`Borrador-${previewProgram.id}`}
-                    onPrev={() => {}} 
-                    onNext={() => {}} 
-                    isLast={true}
-                />
-            </div>
-        );
-    }
 
     return (
         <div>
@@ -247,57 +225,66 @@ export default function StagingList({ onPublished, onEdit }) {
                     No hay programas temporales. Crea uno nuevo desde la pestaña <strong>+ Nuevo programa</strong>.
                 </div>
             ) : (
-                <table className="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Título</th>
-                            <th>Inicio semana</th>
-                            <th>Fin semana</th>
-                            <th>Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {programs.map((p) => (
-                            <tr key={p.id}>
-                                <td>{p.title || <em className="muted">Sin título</em>}</td>
-                                <td>{formatDate(p.week_start)}</td>
-                                <td>{formatDate(p.week_end)}</td>
-                                <td style={{ display: "flex", gap: 8 }}>
-                                    <button
-                                        className="icon-btn"
-                                        style={{ borderColor: "var(--accent-color)", color: "var(--accent-color)" }}
-                                        onClick={() => setPreviewProgram(p)}
-                                        title="Ver vista previa de la Cartelera"
-                                    >
-                                        👁️ Ver
-                                    </button>
-                                    <button
-                                        className="icon-btn"
-                                        onClick={() => onEdit?.(p)}
-                                        title="Editar"
-                                    >
-                                        ✏️ Editar
-                                    </button>
-                                    <button
-                                        className="publish-btn"
-                                        disabled={publishing === p.id}
-                                        onClick={() => handlePublish(p.id, p.title)}
-                                    >
-                                        {publishing === p.id ? "Publicando…" : "📤 Publicar"}
-                                    </button>
-                                    <button
-                                        className="admin-sidebar-logout"
-                                        style={{ padding: "6px 10px", fontSize: "12px", background: "#fee2e2", marginLeft: "8px" }}
-                                        onClick={() => handleDelete(p)}
-                                        title="Eliminar borrador permanentemente"
-                                    >
-                                        🗑️ Eliminar
-                                    </button>
-                                </td>
+                <div className="table-container">
+                    <table className="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Título</th>
+                                <th style={{ textAlign: "right" }}>Acciones</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {programs.map((p) => {
+                                const isPublishing = publishing === p.id;
+                                return (
+                                    <tr key={p.id}>
+                                        <td data-label="Fecha">
+                                            <div style={{ fontWeight: 600 }}>{formatDate(p.week_start)}</div>
+                                            <div style={{ fontSize: "12px", opacity: 0.7 }}>al {formatDate(p.week_end)}</div>
+                                        </td>
+                                        <td data-label="Título" style={{ fontWeight: 500 }}>
+                                            {p.title || <em className="muted">Sin título</em>}
+                                        </td>
+                                        <td data-label="Acciones" className="actions-cell" style={{ textAlign: "right" }}>
+                                            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                                                <button
+                                                    className="publish-btn"
+                                                    onClick={() => handlePublish(p.id, p.title)}
+                                                    disabled={isPublishing}
+                                                >
+                                                    {isPublishing ? "⏳..." : "🚀 Publicar"}
+                                                </button>
+                                                <button
+                                                    className="icon-btn"
+                                                    style={{ borderColor: "var(--accent-color)", color: "var(--accent-color)" }}
+                                                    onClick={() => window.open(`${window.location.origin}/staging/${p.id}`, "_blank")}
+                                                    title="Ver vista previa"
+                                                >
+                                                    👁️
+                                                </button>
+                                                <button
+                                                    className="icon-btn"
+                                                    onClick={() => onEdit?.(p)}
+                                                    title="Editar"
+                                                >
+                                                    ✏️
+                                                </button>
+                                                <button
+                                                    className="icon-btn danger"
+                                                    onClick={() => handleDelete(p)}
+                                                    title="Eliminar"
+                                                >
+                                                    🗑️
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
             )}
         </div>
     );

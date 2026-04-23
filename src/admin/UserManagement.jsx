@@ -134,34 +134,36 @@ export default function UserManagement() {
         </button>
       </div>
 
-      <table className="admin-table">
-        <thead>
-          <tr>
-            <th>Correo Electrónico</th>
-            <th>Rol</th>
-            <th style={{ width: "120px", textAlign: "right" }}>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((u) => (
-            <tr key={u.id}>
-              <td>{u.email}</td>
-              <td><span className="badge badge--current">{u.role}</span></td>
-              <td style={{ textAlign: "right" }}>
-                <button className="icon-btn small" onClick={() => openModal(u)} title="Editar o cambiar contraseña" style={{ marginRight: "8px" }}>
-                  ✏️
-                </button>
-                <button className="icon-btn danger small" onClick={() => handleDelete(u)} title="Eliminar Admin">
-                  🗑️
-                </button>
-              </td>
+      <div className="table-container">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Correo Electrónico</th>
+              <th>Rol</th>
+              <th style={{ width: "120px", textAlign: "right" }}>Acciones</th>
             </tr>
-          ))}
-          {users.length === 0 && (
-            <tr><td colSpan="4" style={{ textAlign: "center", padding: "20px" }}>No hay usuarios.</td></tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {users.map((u) => (
+              <tr key={u.id}>
+                <td data-label="Correo Electrónico">{u.email}</td>
+                <td data-label="Rol"><span className="badge badge--current">{u.role}</span></td>
+                <td data-label="Acciones" className="actions-cell">
+                  <button className="icon-btn small" onClick={() => openModal(u)} title="Editar o cambiar contraseña" style={{ marginRight: "8px" }}>
+                    ✏️
+                  </button>
+                  <button className="icon-btn danger small" onClick={() => handleDelete(u)} title="Eliminar Admin">
+                    🗑️
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {users.length === 0 && (
+              <tr><td colSpan="3" style={{ textAlign: "center", padding: "20px" }}>No hay usuarios.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {/* MODAL SIMULADO SIN DEPENDENCIAS EXTERNAS */}
       {showModal && (
