@@ -11,9 +11,10 @@ export default function StagingPreview() {
   const navigate = useNavigate();
   const { token, logout } = useContext(AuthContext);
   const [program, setProgram] = useState(null);
-  const [stagingList, setStagingList] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [nextExists, setNextExists] = useState(null);
+
 
   // Cargar programa actual
   useEffect(() => {
@@ -41,24 +42,25 @@ export default function StagingPreview() {
     return () => controller.abort();
   }, [id, token, logout]);
 
-  // Cargar lista de borradores para la navegación
+  // Check if a next draft exists (public endpoint)
   useEffect(() => {
-    if (!token) return;
-    fetch(`${API}/api/admin/programs/staging`, {
-        headers: { Authorization: `Bearer ${token}` }
-    })
-    .then(r => r.json())
-    .then(data => {
-        // Ordenar por semana desc (más reciente primero)
-        const sorted = data.sort((a, b) => new Date(b.week_start) - new Date(a.week_start));
-        setStagingList(sorted);
-    })
-    .catch(console.error);
-  }, [token]);
+    const nextId = Number(id) + 1;
+    fetch(`${API}/api/programs/staging/${nextId}`)
+      .then(res => {
+        if (res.status === 404) {
+          setNextExists(false);
+        } else if (res.ok) {
+          setNextExists(true);
+        } else {
+          setNextExists(false);
+        }
+      })
+      .catch(() => setNextExists(false));
+  }, [id]);
 
-  const currentIndex = stagingList.findIndex(p => p.id === Number(id));
-  const nextDraft = currentIndex > 0 ? stagingList[currentIndex - 1] : null;
-  const prevDraft = currentIndex < stagingList.length - 1 && currentIndex !== -1 ? stagingList[currentIndex + 1] : null;
+
+
+
 
   if (loading) return <div className="center-screen">Cargando vista previa…</div>;
   if (error) return <div className="center-screen error">{error}</div>;
@@ -71,10 +73,16 @@ export default function StagingPreview() {
       </div>
       <MeetingFlipBook
         program={program}
-        programId={`Borrador-${id}`}
-        onPrev={() => prevDraft && navigate(`/staging/${prevDraft.id}`)}
-        onNext={() => nextDraft && navigate(`/staging/${nextDraft.id}`)}
-        isLast={!nextDraft}
+        programId={Number(id)}
+        onPrev={() => {
+          const prevId = Number(id) - 1;
+          if (prevId >= 1) navigate(`/staging/${prevId}`);
+        }}
+        onNext={() => {
+          if (nextExists) navigate(`/staging/${Number(id) + 1}`);
+        }}
+        isLast={nextExists === false}
+        checkingNext={nextExists === null}
       />
       <div 
         className="floating-theme-toggle no-print" 
