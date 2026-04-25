@@ -6,6 +6,7 @@ import Login from "./components/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import StagingPreview from "./StagingPreview";
 import CleaningSlide from "./CleaningSlide";
+import PrintSchedule from "./components/PrintSchedule";
 
 export default function AppRoutes() {
   return (
@@ -14,6 +15,7 @@ export default function AppRoutes() {
       <Route path="/programs/:id" element={<App />} />
       <Route path="/staging/:id" element={<StagingPreview />} />
       <Route path="/aseo" element={<CleaningSlide />} />
+      <Route path="/imprimir" element={<PrintSchedule />} />
       <Route path="/login" element={<Login />} />
       <Route 
         path="/admin" 

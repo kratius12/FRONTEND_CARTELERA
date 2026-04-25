@@ -6,6 +6,8 @@ import ProgramForm from "./ProgramForm";
 import UserManagement from "./UserManagement";
 import StudentList from "./StudentList";
 import CleaningManager from "./CleaningManager";
+import AssignmentManager from "./AssignmentManager";
+import GroupBoard from "./GroupBoard";
 import ThemeToggle from "../components/ThemeToggle";
 import { AuthContext } from "../context/AuthContext";
 import "./AdminPage.css";
@@ -163,12 +165,48 @@ export default function AdminPage() {
                         </button>
                         <button
                             className={`admin-tab ${tab === "cleaning" ? "active" : ""}`}
-                            onClick={() => { setEditingProgram(null); setTab("cleaning"); if (window.innerWidth <= 768) setIsSidebarOpen(false); }}
+                            onClick={() => { setTab("cleaning"); if (window.innerWidth <= 768) setIsSidebarOpen(false); }}
                             title="🧹 Aseo"
                         >
                             <span className="tab-icon">🧹</span>
                             {isSidebarOpen && <span className="tab-text">Aseo</span>}
                         </button>
+                        <button
+                            className={`admin-tab ${tab === "micro" ? "active" : ""}`}
+                            onClick={() => { setTab("micro"); if (window.innerWidth <= 768) setIsSidebarOpen(false); }}
+                            title="🎤 Micrófonos"
+                        >
+                            <span className="tab-icon">🎤</span>
+                            {isSidebarOpen && <span className="tab-text">Micrófonos</span>}
+                        </button>
+                        <button
+                            className={`admin-tab ${tab === "attendant" ? "active" : ""}`}
+                            onClick={() => { setTab("attendant"); if (window.innerWidth <= 768) setIsSidebarOpen(false); }}
+                            title="🛡️ Acomodadores"
+                        >
+                            <span className="tab-icon">🛡️</span>
+                            {isSidebarOpen && <span className="tab-text">Acomodadores</span>}
+                        </button>
+                        <button
+                            className={`admin-tab ${tab === "groups" ? "active" : ""}`}
+                            onClick={() => { setTab("groups"); if (window.innerWidth <= 768) setIsSidebarOpen(false); }}
+                            title="🗂️ Grupos"
+                        >
+                            <span className="tab-icon">🗂️</span>
+                            {isSidebarOpen && <span className="tab-text">Grupos</span>}
+                        </button>
+
+                        <a
+                            href="/imprimir"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="admin-tab"
+                            style={{ textDecoration: 'none' }}
+                            title="🖨️ Ver Imprimible"
+                        >
+                            <span className="tab-icon">🖨️</span>
+                            {isSidebarOpen && <span className="tab-text">Ver Imprimible</span>}
+                        </a>
 
                         {tab === "edit" && editingProgram && (
                             <button className="admin-tab active" disabled title="✏️ Editando">
@@ -217,8 +255,17 @@ export default function AdminPage() {
                         <StudentList />
                     </div>
                 )}
-                {!loadingEdit && tab === "cleaning" && (
+                {(!loadingEdit && tab === "cleaning") && (
                     <CleaningManager />
+                )}
+                {!loadingEdit && tab === "micro" && (
+                    <AssignmentManager type="micro" title="Micrófonos" icon="🎤" />
+                )}
+                {!loadingEdit && tab === "attendant" && (
+                    <AssignmentManager type="attendant" title="Acomodadores" icon="🛡️" />
+                )}
+                {!loadingEdit && tab === "groups" && (
+                    <GroupBoard />
                 )}
                 {!loadingEdit && tab === "edit" && editingProgram && (
                     <ProgramForm

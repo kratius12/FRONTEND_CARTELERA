@@ -24,7 +24,10 @@ export default function StudentList() {
         status: "Activo",
         telefono: "",
         infoadd: "",
-        gender: ""
+        gender: "",
+        aseo: false,
+        acomodador: false,
+        microfonos: false
     });
 
     const fetchStudents = async () => {
@@ -59,7 +62,10 @@ export default function StudentList() {
                 status: student.status,
                 telefono: student.telefono || "",
                 infoadd: student.infoadd || "",
-                gender: student.gender !== null ? String(student.gender) : ""
+                gender: student.gender !== null ? String(student.gender) : "",
+                aseo: student.aseo || false,
+                acomodador: student.acomodador || false,
+                microfonos: student.microfonos || false
             });
         } else {
             setEditingId(null);
@@ -68,7 +74,10 @@ export default function StudentList() {
                 status: "Activo",
                 telefono: "",
                 infoadd: "",
-                gender: ""
+                gender: "",
+                aseo: false,
+                acomodador: false,
+                microfonos: false
             });
         }
         setShowModal(true);
@@ -304,6 +313,53 @@ export default function StudentList() {
                                     <input type="text" value={formData.infoadd} onChange={e => setFormData({ ...formData, infoadd: e.target.value })} placeholder="Ej: Ayudante, Siervo" />
                                 </div>
                             </div>
+
+                            {formData.gender === "1" && (
+                                <div style={{ marginTop: '20px', padding: '16px', backgroundColor: '#1a1a1a', borderRadius: '8px', border: '1px solid #333' }}>
+                                    <label style={{ fontSize: '14px', marginBottom: '12px', display: 'block', color: 'var(--accent-color)' }}>Privilegios / Asignaciones</label>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                                        <button 
+                                            type="button"
+                                            className={`toggle-btn-list ${formData.aseo ? 'active' : ''}`}
+                                            onClick={() => setFormData({ ...formData, aseo: !formData.aseo })}
+                                            style={{
+                                                padding: '8px', borderRadius: '6px', border: '1px solid #444',
+                                                background: formData.aseo ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
+                                                color: formData.aseo ? '#60a5fa' : '#888',
+                                                fontSize: '12px', cursor: 'pointer'
+                                            }}
+                                        >
+                                            Aseo {formData.aseo ? '✅' : '❌'}
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            className={`toggle-btn-list ${formData.acomodador ? 'active' : ''}`}
+                                            onClick={() => setFormData({ ...formData, acomodador: !formData.acomodador })}
+                                            style={{
+                                                padding: '8px', borderRadius: '6px', border: '1px solid #444',
+                                                background: formData.acomodador ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
+                                                color: formData.acomodador ? '#60a5fa' : '#888',
+                                                fontSize: '12px', cursor: 'pointer'
+                                            }}
+                                        >
+                                            Acomodador {formData.acomodador ? '✅' : '❌'}
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            className={`toggle-btn-list ${formData.microfonos ? 'active' : ''}`}
+                                            onClick={() => setFormData({ ...formData, microfonos: !formData.microfonos })}
+                                            style={{
+                                                padding: '8px', borderRadius: '6px', border: '1px solid #444',
+                                                background: formData.microfonos ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
+                                                color: formData.microfonos ? '#60a5fa' : '#888',
+                                                fontSize: '12px', cursor: 'pointer'
+                                            }}
+                                        >
+                                            Micrófonos {formData.microfonos ? '✅' : '❌'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="form-actions" style={{ marginTop: '24px' }}>
                                 <button type="button" className="discard-btn" onClick={handleCloseModal}>Cancelar</button>

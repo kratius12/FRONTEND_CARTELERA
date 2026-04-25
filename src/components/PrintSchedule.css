@@ -1,0 +1,139 @@
+/* PrintSchedule.css */
+
+.print-page {
+    background: white;
+    min-height: 100vh;
+    padding: 20px;
+    color: black;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.print-controls {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f4f4f4;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.print-btn {
+    padding: 10px 20px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.printable-content {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+}
+
+.main-header {
+    text-align: center;
+    border-bottom: 2px solid black;
+    padding-bottom: 2px;
+    margin-bottom: 2px;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.schedule-section {
+    margin-bottom: 6px;
+}
+
+.section-header {
+    text-align: center;
+    font-weight: bold;
+    color: white;
+    padding: 2px;
+    font-size: 13px;
+    border: 1px solid black;
+    text-transform: uppercase;
+}
+
+.section-header.yellow {
+    background-color: #b8860b; /* Dark Goldenrod */
+}
+
+.section-header.red {
+    background-color: #8b0000; /* Dark Red */
+}
+
+.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.schedule-table th, 
+.schedule-table td {
+    border: 1px solid black;
+    padding: 3px 4px;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.schedule-table th {
+    background-color: #333;
+    color: white;
+    font-weight: bold;
+    padding: 4px;
+}
+
+.aseo-table thead tr.yellow-header th {
+    background-color: #b8860b;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+/* Media Queries for Printing */
+@media print {
+    @page {
+        margin: 0.5cm;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+    
+    body {
+        margin: 0;
+        padding: 0;
+        background: white;
+    }
+
+    .print-page {
+        padding: 0;
+        margin: 0;
+        width: 100%;
+    }
+
+    .printable-content {
+        max-width: 100%;
+    }
+
+    /* Force all on one page */
+    .printable-content {
+        page-break-inside: avoid;
+    }
+
+    .schedule-table {
+        font-size: 12.5px;
+    }
+
+    .main-header {
+        font-size: 14px;
+        margin-bottom: 2px;
+    }
+
+    .schedule-section {
+        margin-bottom: 6px;
+    }
+}
