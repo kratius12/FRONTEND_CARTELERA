@@ -62,14 +62,36 @@ export default function PrintSchedule() {
     const attendantGroups = groupAssignments(data?.attendants || []);
     const cleaningData = (data?.cleaning || []).sort((a, b) => new Date(a.week_start) - new Date(b.week_start));
 
+    const handleDownload = () => {
+        const element = document.getElementById('printable-area');
+        const opt = {
+            margin: [0.5, 0.5, 0.5, 0.5], // Arriba, derecha, abajo, izquierda
+            filename: 'programacion_oriente.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { 
+                scale: 3, // Mayor resolución para que el texto sea nítido
+                useCORS: true,
+                logging: false,
+                letterRendering: true
+            },
+            jsPDF: { unit: 'cm', format: 'letter', orientation: 'portrait' }
+        };
+        
+        // Ejecutar descarga
+        window.html2pdf().from(element).set(opt).save();
+    };
+
     return (
         <div className="print-page">
             <div className="print-controls no-print">
-                <button onClick={() => window.print()} className="print-btn">🖨️ Imprimir Programación</button>
-                <p>Usa esta vista para imprimir. Se ajustará automáticamente a una página.</p>
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                    <button onClick={() => window.print()} className="print-btn">🖨️ Imprimir</button>
+                    <button onClick={handleDownload} className="print-btn" style={{ background: '#10b981' }}>📥 Descargar PDF</button>
+                </div>
+                <p>Esta vista se ajusta automáticamente a una página.</p>
             </div>
 
-            <div className="printable-content">
+            <div className="printable-content" id="printable-area">
                 {/* Header Compacto */}
                 <div className="main-header">
                     <span className="header-text">ORIENTE - ENCARGADOS ACOMODADORES Y MICROFONOS</span>
