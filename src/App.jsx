@@ -5,6 +5,7 @@ import ThemeToggle from "./components/ThemeToggle";
 
 const API = import.meta.env.VITE_API_URL || "";
 
+
 export default function App() {
   const { id } = useParams();
   const navigate = useNavigate();
