@@ -30,6 +30,8 @@ export default function StagingList({ onPublished, onEdit }) {
     const [toast, setToast] = useState("");
     const [confirmDeleteModal, setConfirmDeleteModal] = useState(null);
     const [uploadingPdf, setUploadingPdf] = useState(false);
+    const [urlImport, setUrlImport] = useState("");
+    const [importingUrl, setImportingUrl] = useState(false);
 
     const load = () => {
         setLoading(true);
@@ -159,6 +161,42 @@ export default function StagingList({ onPublished, onEdit }) {
         }
     };
 
+    const handleUrlImport = async () => {
+        if (!urlImport) return;
+        setImportingUrl(true);
+        try {
+            setToast("⏳ Importando guía desde URL...");
+            const r = await fetch(`${API}/api/admin/programs/import-url`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ url: urlImport.trim() }),
+            });
+
+            if (r.status === 401 || r.status === 403) {
+                logout();
+                throw new Error("Sesión expirada");
+            }
+
+            const data = await r.json();
+            if (!r.ok) throw new Error(data.detail || "Error al importar URL");
+
+            setToast(`✅ ¡Éxito! ${data.message}`);
+            setUrlImport("");
+            setTimeout(() => {
+                setToast("");
+                load();
+            }, 2500);
+        } catch (err) {
+            setToast(`❌ Error: ${err.message}`);
+            setTimeout(() => setToast(""), 4000);
+        } finally {
+            setImportingUrl(false);
+        }
+    };
+
     if (loading) return <div className="admin-status">Cargando staging…</div>;
     if (error) return <div className="admin-status error">{error}</div>;
 
@@ -197,7 +235,23 @@ export default function StagingList({ onPublished, onEdit }) {
                     <span className="list-badge">{programs.length}</span>
                 </h2>
                 
-                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+                    <input
+                        type="text"
+                        value={urlImport}
+                        onChange={(e) => setUrlImport(e.target.value)}
+                        placeholder="Pega la URL de la guía JW.org"
+                        style={{ minWidth: "260px", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--border-color)", flex: "1" }}
+                        disabled={importingUrl}
+                    />
+                    <button
+                        className="publish-btn"
+                        onClick={handleUrlImport}
+                        disabled={!urlImport.trim() || importingUrl}
+                        style={{ whiteSpace: "nowrap", marginTop: 0, opacity: !urlImport.trim() ? 0.6 : 1 }}
+                    >
+                        {importingUrl ? "⏳ Importando..." : "🌐 Importar Guía (URL)"}
+                    </button>
                     <input 
                         type="file" 
                         accept="application/pdf"

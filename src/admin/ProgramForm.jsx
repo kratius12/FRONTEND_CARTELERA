@@ -577,7 +577,7 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
                                         <button type="button" className="icon-btn danger small" onClick={() => removeItem(si, ii)}>✕</button>
                                     </div>
 
-                                    {!isSong && (sec.columns ? (
+                                    {!isSong && sec.columns && (
                                         <div className="form-row form-row--2" style={{ paddingLeft: 28 }}>
                                             <div className="form-group">
                                                 <label>{sec.columns[0]}</label>
@@ -588,18 +588,7 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
                                                 <input type="text" value={item.assigned?.[1] || ""} onChange={(e) => updateItemAssigned(si, ii, 1, e.target.value)} />
                                             </div>
                                         </div>
-                                    ) : (
-                                        <div className="form-row form-row--2" style={{ paddingLeft: 28 }}>
-                                            <div className="form-group">
-                                                <label>Asignado</label>
-                                                <input type="text" value={item.assigned?.[0] || ""} onChange={(e) => updateItemAssigned(si, ii, 0, e.target.value)} />
-                                            </div>
-                                            <div className="form-group">
-                                                <label>Nota (opcional)</label>
-                                                <input type="text" value={item.noteLabel || ""} onChange={(e) => updateItem(si, ii, "noteLabel", e.target.value)} placeholder="Ej: Discurso" />
-                                            </div>
-                                        </div>
-                                    ))}
+                                    )}
                                 </div>
                             );
                         })}
