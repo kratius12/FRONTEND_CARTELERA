@@ -7,11 +7,7 @@ export default function CleaningManager() {
     const { token, logout } = useContext(AuthContext);
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [generating, setGenerating] = useState(false);
     const [error, setError] = useState("");
-    const [toast, setToast] = useState("");
-    const [nPairs, setNPairs] = useState(5);
-    const [startDate, setStartDate] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
 
@@ -22,13 +18,9 @@ export default function CleaningManager() {
             const res = await fetch(`${API}/api/admin/cleaning/history`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
-            if (res.status === 401 || res.status === 403) {
-                logout();
-                throw new Error("Sesión expirada");
-            }
+            if (res.status === 401 || res.status === 403) { logout(); throw new Error("Sesión expirada"); }
             if (!res.ok) throw new Error("No se pudo cargar el historial de aseo");
-            const data = await res.json();
-            setHistory(data);
+            setHistory(await res.json());
         } catch (err) {
             setError(err.message);
         } finally {
@@ -36,173 +28,83 @@ export default function CleaningManager() {
         }
     };
 
-    useEffect(() => {
-        fetchHistory();
-    }, []);
-
-    const handleGenerate = async () => {
-        if (nPairs < 1 || nPairs > 50) {
-            alert("Por favor ingresa un número entre 1 y 50.");
-            return;
-        }
-
-        setGenerating(true);
-        setError("");
-        setToast("");
-        try {
-            let url = `${API}/api/admin/cleaning/generate?n_parejas_a_generar=${nPairs}`;
-            if (startDate) {
-                url += `&start_date=${startDate}`;
-            }
-            
-            const res = await fetch(url, {
-                method: "POST",
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-            if (res.status === 401 || res.status === 403) {
-                logout();
-                throw new Error("Sesión expirada");
-            }
-            if (!res.ok) throw new Error("Error al generar las parejas de aseo");
-            
-            const nuevas = await res.json();
-            setToast(`¡Se insertaron ${nuevas.length} nuevas combinaciones exitosamente!`);
-            
-            // Recargar el historial
-            fetchHistory();
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setGenerating(false);
-        }
-    };
-
+    useEffect(() => { fetchHistory(); }, []);
 
     const formatDate = (dateString) => {
         if (!dateString) return "-";
-        const date = new Date(dateString);
-        return new Intl.DateTimeFormat('es-ES', {
-            year: 'numeric', month: 'short', day: '2-digit',
-            hour: '2-digit', minute: '2-digit'
-        }).format(date);
+        return new Intl.DateTimeFormat("es-ES", {
+            year: "numeric", month: "short", day: "2-digit"
+        }).format(new Date(dateString));
     };
+
+    const totalPages = Math.ceil(history.length / itemsPerPage);
+    const currentHistory = history.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     return (
         <div className="tab-content fade-in">
-            <div className="form-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2 style={{ margin: 0 }}>🧹 Gestión de Aseo (Cíclico)</h2>
-            </div>
-            
-            <p style={{ color: "var(--text-secondary)", marginBottom: "24px" }}>
-                Genera las asignaciones de aseo automáticamente. El sistema sigue una secuencia estricta de 15 combinaciones
-                y nunca repite ni se sale de ciclo.
+            <h2 style={{ marginBottom: "4px" }}>🧹 Aseo</h2>
+            <p style={{ color: "var(--text-secondary)", marginBottom: "24px", fontSize: "14px" }}>
+                Historial de asignaciones de aseo. Para generar nuevas semanas usa la pestaña <strong>📅 Programación</strong>.
             </p>
 
             {error && <div className="error" style={{ marginBottom: "20px" }}>{error}</div>}
-            {toast && <div className="toast" style={{ top: "80px", right: "20px" }}>{toast}</div>}
-
-            <div className="card" style={{ marginBottom: "30px", padding: "20px", background: "var(--bg-secondary)", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
-                <h3 style={{ marginTop: 0, marginBottom: "16px", color: "var(--text-primary)" }}>⚙️ Generador</h3>
-                <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                        <label style={{ fontSize: "14px", color: "var(--text-secondary)" }}>Cantidad a generar</label>
-                        <input 
-                            type="number" 
-                            min="1" 
-                            max="50" 
-                            value={nPairs} 
-                            onChange={(e) => setNPairs(Number(e.target.value))}
-                            style={{ padding: "8px", borderRadius: "6px", border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-primary)", width: "120px" }}
-                        />
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                        <label style={{ fontSize: "14px", color: "var(--text-secondary)" }}>Fecha de inicio (opcional)</label>
-                        <input 
-                            type="date" 
-                            value={startDate} 
-                            onChange={(e) => setStartDate(e.target.value)}
-                            style={{ padding: "8px", borderRadius: "6px", border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-primary)" }}
-                        />
-                    </div>
-                    <button 
-                        onClick={handleGenerate} 
-                        disabled={generating}
-                        className="submit-btn"
-                        style={{ marginTop: "24px" }}
-                    >
-                        {generating ? "Generando..." : "✨ Generar y Guardar Parejas"}
-                    </button>
-
-                </div>
-            </div>
 
             <div className="card" style={{ padding: "0", background: "var(--bg-secondary)", borderRadius: "8px", border: "1px solid var(--border-color)", overflow: "hidden" }}>
-                <div style={{ padding: "20px", borderBottom: "1px solid var(--border-color)" }}>
-                    <h3 style={{ margin: 0, color: "var(--text-primary)" }}>📖 Últimos Registros Generados</h3>
+                <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-color)" }}>
+                    <h3 style={{ margin: 0, color: "var(--text-primary)" }}>📖 Registros</h3>
                 </div>
-                
-                {loading && <div style={{ padding: "20px", textAlign: "center" }}>Cargando historial...</div>}
-                
+
+                {loading && <div style={{ padding: "20px", textAlign: "center" }}>Cargando...</div>}
+
                 {!loading && history.length === 0 && (
                     <div style={{ padding: "30px", textAlign: "center", color: "var(--text-secondary)" }}>
-                        No hay historial de aseo. ¡Genera tus primeras parejas arriba!
+                        No hay registros. Genera semanas desde la pestaña 📅 Programación.
                     </div>
                 )}
-                
-                {!loading && history.length > 0 && (() => {
-                    const totalPages = Math.ceil(history.length / itemsPerPage);
-                    const currentHistory = history.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-                    return (
-                        <div className="table-responsive">
-                            <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
-                                <thead>
-                                    <tr style={{ background: "var(--bg-tertiary)" }}>
-                                        <th style={{ padding: "12px 20px", color: "var(--text-secondary)", fontWeight: "600", fontSize: "14px", borderBottom: "1px solid var(--border-color)" }}>Grupo 1</th>
-                                        <th style={{ padding: "12px 20px", color: "var(--text-secondary)", fontWeight: "600", fontSize: "14px", borderBottom: "1px solid var(--border-color)" }}>Grupo 2</th>
-                                        <th style={{ padding: "12px 20px", color: "var(--text-secondary)", fontWeight: "600", fontSize: "14px", borderBottom: "1px solid var(--border-color)" }}>Encargado</th>
-                                        <th style={{ padding: "12px 20px", color: "var(--text-secondary)", fontWeight: "600", fontSize: "14px", borderBottom: "1px solid var(--border-color)" }}>Supervisor</th>
-                                        <th style={{ padding: "12px 20px", color: "var(--text-secondary)", fontWeight: "600", fontSize: "14px", borderBottom: "1px solid var(--border-color)" }}>Semana (Inicio - Fin)</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {currentHistory.map((h, i) => (
-                                        <tr key={h.id} style={{ borderBottom: i < currentHistory.length - 1 ? "1px solid var(--border-color)" : "none", transition: "background 0.2s" }} onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-tertiary)'} onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}>
-                                            <td style={{ padding: "14px 20px", fontWeight: "bold", color: "var(--text-primary)" }}>Grupo {h.grupo1}</td>
-                                            <td style={{ padding: "14px 20px", fontWeight: "bold", color: "var(--text-primary)" }}>Grupo {h.grupo2}</td>
-                                            <td style={{ padding: "14px 20px", color: "var(--accent-color)", fontWeight: "500" }}>{h.encargado || "N/A"}</td>
-                                            <td style={{ padding: "14px 20px", color: "#60a5fa", fontWeight: "500" }}>{h.supervisor || "N/A"}</td>
-                                            <td style={{ padding: "14px 20px", color: "var(--text-secondary)", fontSize: "14px" }}>
-                                                {formatDate(h.week_start)} — {formatDate(h.week_end)}
-                                            </td>
-                                        </tr>
+
+                {!loading && history.length > 0 && (
+                    <div className="table-responsive">
+                        <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+                            <thead>
+                                <tr style={{ background: "var(--bg-tertiary)" }}>
+                                    {["Semana", "Grupos", "Encargado", "Supervisor"].map(h => (
+                                        <th key={h} style={{ padding: "12px 20px", color: "var(--text-secondary)", fontWeight: 600, fontSize: "14px", borderBottom: "1px solid var(--border-color)" }}>{h}</th>
                                     ))}
-                                </tbody>
-                            </table>
-                            
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderTop: '1px solid var(--border-color)', background: 'var(--bg-tertiary)' }}>
-                                <button
-                                    className="icon-btn"
-                                    disabled={currentPage === 1}
-                                    onClick={() => setCurrentPage(prev => prev - 1)}
-                                    style={{ padding: '6px 12px', opacity: currentPage === 1 ? 0.5 : 1, cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: '14px', border: '1px solid var(--border-color)', borderRadius: '4px', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
-                                >
-                                    Anterior
-                                </button>
-                                <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-                                    Página {currentPage} de {totalPages || 1}
-                                </span>
-                                <button
-                                    className="icon-btn"
-                                    disabled={currentPage >= totalPages || totalPages === 0}
-                                    onClick={() => setCurrentPage(prev => prev + 1)}
-                                    style={{ padding: '6px 12px', opacity: currentPage >= totalPages || totalPages === 0 ? 0.5 : 1, cursor: currentPage >= totalPages || totalPages === 0 ? 'not-allowed' : 'pointer', fontSize: '14px', border: '1px solid var(--border-color)', borderRadius: '4px', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
-                                >
-                                    Siguiente
-                                </button>
-                            </div>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {currentHistory.map((h, i) => (
+                                    <tr key={h.id}
+                                        style={{ borderBottom: i < currentHistory.length - 1 ? "1px solid var(--border-color)" : "none" }}
+                                        onMouseOver={e => e.currentTarget.style.background = "var(--bg-tertiary)"}
+                                        onMouseOut={e => e.currentTarget.style.background = "transparent"}
+                                    >
+                                        <td style={{ padding: "14px 20px", color: "var(--text-secondary)", fontSize: "14px" }}>
+                                            {formatDate(h.week_start)} — {formatDate(h.week_end)}
+                                        </td>
+                                        <td style={{ padding: "14px 20px", fontWeight: "bold", color: "var(--text-primary)" }}>
+                                            {h.grupo1} - {h.grupo2}
+                                        </td>
+                                        <td style={{ padding: "14px 20px", color: "var(--accent-color)", fontWeight: 500 }}>{h.encargado || "N/A"}</td>
+                                        <td style={{ padding: "14px 20px", color: "#60a5fa", fontWeight: 500 }}>{h.supervisor || "N/A"}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 20px", borderTop: "1px solid var(--border-color)", background: "var(--bg-tertiary)" }}>
+                            <button className="icon-btn" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}
+                                style={{ padding: "6px 12px", opacity: currentPage === 1 ? 0.5 : 1, cursor: currentPage === 1 ? "not-allowed" : "pointer", fontSize: "14px", border: "1px solid var(--border-color)", borderRadius: "4px", background: "var(--bg-primary)", color: "var(--text-primary)" }}>
+                                Anterior
+                            </button>
+                            <span style={{ color: "var(--text-secondary)", fontSize: "14px" }}>Página {currentPage} de {totalPages || 1}</span>
+                            <button className="icon-btn" disabled={currentPage >= totalPages} onClick={() => setCurrentPage(p => p + 1)}
+                                style={{ padding: "6px 12px", opacity: currentPage >= totalPages ? 0.5 : 1, cursor: currentPage >= totalPages ? "not-allowed" : "pointer", fontSize: "14px", border: "1px solid var(--border-color)", borderRadius: "4px", background: "var(--bg-primary)", color: "var(--text-primary)" }}>
+                                Siguiente
+                            </button>
                         </div>
-                    );
-                })()}
+                    </div>
+                )}
             </div>
         </div>
     );

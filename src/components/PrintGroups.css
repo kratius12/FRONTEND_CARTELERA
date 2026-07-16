@@ -1,0 +1,208 @@
+.print-groups-page {
+    min-height: 100vh;
+    padding: 24px;
+    background: white;
+    color: black;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.print-controls {
+    margin-bottom: 18px;
+    padding: 14px;
+    background: #f4f4f4;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+}
+
+.print-controls-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+}
+
+.print-btn {
+    padding: 10px 20px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.print-help {
+    color: #374151;
+    font-size: 14px;
+}
+
+.print-groups-content {
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+.print-title-block {
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+.print-title-block h1 {
+    margin: 10px 0 6px;
+    font-size: 28px;
+    letter-spacing: 0.04em;
+}
+
+.print-title-block p {
+    margin: 0;
+    color: #374151;
+    font-size: 14px;
+}
+
+.print-header-top {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+    color: #111827;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+}
+
+.print-header-top strong {
+    font-size: 14px;
+    letter-spacing: 0.18em;
+}
+
+.print-groups-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.group-card {
+    padding: 12px;
+    border: 1px solid #111827;
+    border-radius: 8px;
+    background: #ffffff;
+    page-break-inside: avoid;
+}
+
+.group-card-title {
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.group-card-meta {
+    display: inline-block;
+    background: #111827;
+    color: #f9fafb;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    margin-bottom: 10px;
+}
+
+.group-card-name {
+    font-size: 18px;
+    font-weight: 800;
+    text-transform: uppercase;
+    line-height: 1.1;
+    color: #111827;
+}
+
+.group-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 4px;
+}
+
+.group-item {
+    display: grid;
+    grid-template-columns: 30px 1fr;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #f9fafb;
+}
+
+.group-item:nth-child(2n) {
+    background: #ffffff;
+}
+
+.group-item-index {
+    font-weight: 700;
+    color: #111827;
+}
+
+.group-item-name {
+    color: #111827;
+    font-size: 13px;
+}
+
+.group-table,
+.group-header,
+.group-item-name,
+.group-card-meta {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.error-message {
+    color: #b91c1c;
+    padding: 16px;
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    max-width: 640px;
+    margin: 32px auto;
+    text-align: center;
+}
+
+.no-groups {
+    color: #374151;
+    text-align: center;
+    padding: 28px;
+    background: #f9fafb;
+    border: 1px dashed #d1d5db;
+    border-radius: 10px;
+}
+
+@media print {
+    @page {
+        margin: 0.8cm;
+    }
+    body {
+        margin: 0;
+        background: white;
+    }
+    .no-print {
+        display: none !important;
+    }
+    .print-groups-page {
+        padding: 0;
+    }
+    .print-controls {
+        display: none;
+    }
+    .print-groups-content {
+        max-width: 100%;
+    }
+    .group-card {
+        page-break-inside: avoid;
+        border: 1px solid #000;
+    }
+    .group-table th,
+    .group-table td {
+        font-size: 12px;
+        padding: 8px 10px;
+    }
+}
