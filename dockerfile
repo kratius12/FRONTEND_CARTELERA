@@ -2,9 +2,12 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
+# Habilitar pnpm via corepack
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 # Dependencias
-COPY package*.json ./
-RUN npm ci
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 # Código
 COPY . .
@@ -14,7 +17,7 @@ ARG VITE_API_URL
 ENV VITE_API_URL=${VITE_API_URL}
 
 # Build
-RUN npm run build
+RUN pnpm run build
 
 
 # ---------- Run ----------
