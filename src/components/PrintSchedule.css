@@ -6,6 +6,8 @@
     padding: 20px;
     color: black;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
 }
 
 .print-controls {
@@ -40,6 +42,7 @@
     margin-bottom: 2px;
     font-weight: bold;
     font-size: 15px;
+    color: black !important;
 }
 
 .schedule-section {
@@ -56,13 +59,8 @@
     text-transform: uppercase;
 }
 
-.section-header.yellow {
-    background-color: #b8860b; /* Dark Goldenrod */
-}
-
-.section-header.red {
-    background-color: #8b0000; /* Dark Red */
-}
+.section-header.yellow { background-color: #b8860b; }
+.section-header.red    { background-color: #8b0000; }
 
 .schedule-table {
     width: 100%;
@@ -70,44 +68,330 @@
     font-size: 13px;
 }
 
-.schedule-table th, 
+.schedule-table th,
 .schedule-table td {
-    border: 1px solid black;
+    border: 0.5px solid #000;
     padding: 3px 4px;
     text-align: center;
     line-height: 1.2;
 }
 
+.schedule-table td { color: black !important; }
+
 .schedule-table th {
     background-color: #333;
-    color: white;
+    color: white !important;
     font-weight: bold;
     padding: 4px;
 }
 
-.aseo-table thead tr.yellow-header th {
-    background-color: #b8860b;
-}
+.aseo-table thead tr.yellow-header th { background-color: #b8860b; }
 
-.bold {
+.bold { font-weight: bold; }
+
+/* ─── Menú de selección ──────────────────────────────────────────────────── */
+
+.menu-card {
+    padding: 24px 32px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.menu-card:hover {
+    border-color: #2563eb;
+    box-shadow: 0 4px 16px rgba(37,99,235,0.15);
+}
+.menu-card-label {
     font-weight: bold;
+    font-size: 13px;
+    color: #111;
+    text-align: center;
+    line-height: 1.5;
 }
 
-/* Media Queries for Printing */
-@media print {
-    @page {
-        margin: 0.5cm;
-    }
+/* ─── Selector de semana ─────────────────────────────────────────────────── */
 
-    .no-print {
-        display: none !important;
-    }
-    
-    body {
-        margin: 0;
-        padding: 0;
-        background: white;
-    }
+.meeting-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.selector-box {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 28px 36px;
+    width: 360px;
+    max-width: 90vw;
+}
+
+.selector-field {
+    margin-bottom: 18px;
+}
+
+.selector-field label {
+    display: block;
+    font-weight: 700;
+    font-size: 11px;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 7px;
+}
+
+.selector-field select {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    background: white;
+    color: #111;
+    cursor: pointer;
+}
+
+.week-count-btns {
+    display: flex;
+    gap: 8px;
+}
+
+.week-count-btn {
+    flex: 1;
+    padding: 9px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: white;
+    color: #333;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 15px;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.week-count-btn.active {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+
+.selector-back-btn {
+    flex: 1;
+    padding: 11px;
+    background: #6b7280;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.selector-go-btn {
+    flex: 2;
+    padding: 11px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+    transition: filter 0.12s;
+}
+
+.selector-go-btn:hover:not(:disabled) { filter: brightness(1.1); }
+
+.selector-go-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* ─── FlipBook cards para impresión ─────────────────────────────────────── */
+/*
+   Cada `fb-pair` contiene 2 programas (1 página de impresión).
+   Entre pares se aplica page-break. Los 2 programas dentro de un par
+   quedan separados por una línea punteada.
+*/
+
+.fb-pair {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Línea cortada entre los 2 programas de un par (se muestra en pantalla y en impresión) */
+.fb-pair > .fb-card + .fb-card {
+    border-top: 1.5px dashed #bbb;
+    margin-top: 4px;
+    padding-top: 4px;
+}
+
+/* Salto de página después de cada par (excepto el último) */
+.fb-page-break {
+    page-break-after: always;
+    break-after: page;
+}
+
+/* ── Tarjeta de programa ── */
+.fb-card {
+    padding: 10px 16px 12px;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #111;
+    font-size: 11.5px;
+}
+
+/* Topline: ORIENTE | título | espaciador */
+.fb-topline {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.fb-oriente {
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 10px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid #ccc;
+    min-width: 70px;
+    color: #111;
+}
+
+.fb-title {
+    flex: 1;
+    text-align: center;
+    font-family: "Merriweather", Georgia, serif;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1.1;
+    margin: 0;
+    color: #111;
+}
+
+.fb-rule {
+    border: none;
+    border-top: 2px solid #ccc;
+    margin: 5px 0 7px;
+}
+
+/* Meta: fecha/lectura a la izquierda, presidente/oración a la derecha */
+.fb-meta {
+    display: grid;
+    grid-template-columns: 1fr 190px;
+    gap: 10px;
+    align-items: start;
+    margin-bottom: 2px;
+}
+
+.fb-meta-left {
+    font-weight: 700;
+    font-size: 10.5px;
+    color: #111;
+}
+
+.fb-meta-right {
+    font-size: 10.5px;
+    color: #111;
+    line-height: 1.6;
+}
+
+.fb-label {
+    color: #555;
+    font-weight: 600;
+    display: inline-block;
+    width: 64px;
+}
+
+/* Lista de canciones/intro */
+.fb-bullets {
+    margin: 4px 0 0;
+    padding-left: 14px;
+    font-size: 11px;
+    color: #111;
+}
+.fb-bullets li { margin: 2px 0; }
+
+/* Secciones */
+.fb-section { margin-top: 6px; }
+
+.fb-bar {
+    color: #fff;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    font-size: 10.5px;
+    letter-spacing: 0.02em;
+    border-radius: 2px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+/* Filas numeradas */
+.fb-rows {
+    margin-top: 3px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.fb-row {
+    display: grid;
+    grid-template-columns: 1fr 185px;
+    gap: 8px;
+    align-items: baseline;
+}
+
+.fb-left  { font-size: 11.5px; color: #111; }
+.fb-right { text-align: left; font-size: 11.5px; white-space: nowrap; color: #111; }
+
+/* Dos columnas (Estudiante / Ayudante) */
+.fb-twohead {
+    display: grid;
+    grid-template-columns: 1fr 185px;
+    gap: 8px;
+    margin-top: 3px;
+    align-items: end;
+}
+
+.fb-twohead-right {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #555;
+    text-transform: capitalize;
+}
+
+.fb-twocol .fb-right,
+.fb-twocol-right {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    white-space: normal;
+}
+
+.fb-muted      { color: #777; }
+.fb-note-label { font-weight: 700; color: #777; }
+
+/* ─── Media queries de impresión ─────────────────────────────────────────── */
+
+@media print {
+    @page { margin: 0.5cm; }
+
+    .no-print { display: none !important; }
+
+    body { margin: 0; padding: 0; background: white; }
 
     .print-page {
         padding: 0;
@@ -115,25 +399,27 @@
         width: 100%;
     }
 
-    .printable-content {
-        max-width: 100%;
+    .printable-content { max-width: 100%; }
+
+    /* Forzar salto de página entre pares */
+    .fb-page-break {
+        page-break-after: always !important;
+        break-after: page !important;
     }
 
-    /* Force all on one page */
-    .printable-content {
-        page-break-inside: avoid;
+    /* Evitar que un par se parta entre páginas */
+    .fb-pair { page-break-inside: avoid; }
+
+    /* Colores exactos en impresión */
+    .fb-bar,
+    .section-header,
+    .schedule-table th,
+    .aseo-table thead tr.yellow-header th {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
     }
 
-    .schedule-table {
-        font-size: 12.5px;
-    }
-
-    .main-header {
-        font-size: 14px;
-        margin-bottom: 2px;
-    }
-
-    .schedule-section {
-        margin-bottom: 6px;
-    }
+    .schedule-table { font-size: 12.5px; }
+    .main-header { font-size: 14px; margin-bottom: 2px; }
+    .schedule-section { margin-bottom: 6px; }
 }

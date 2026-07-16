@@ -27,7 +27,9 @@ export default function StudentList() {
         gender: "",
         aseo: false,
         acomodador: false,
-        microfonos: false
+        microfonos: false,
+        es_anciano: false,
+        es_siervo: false
     });
 
     const fetchStudents = async () => {
@@ -65,7 +67,9 @@ export default function StudentList() {
                 gender: student.gender !== null ? String(student.gender) : "",
                 aseo: student.aseo || false,
                 acomodador: student.acomodador || false,
-                microfonos: student.microfonos || false
+                microfonos: student.microfonos || false,
+                es_anciano: student.es_anciano || false,
+                es_siervo: student.es_siervo || false
             });
         } else {
             setEditingId(null);
@@ -77,7 +81,9 @@ export default function StudentList() {
                 gender: "",
                 aseo: false,
                 acomodador: false,
-                microfonos: false
+                microfonos: false,
+                es_anciano: false,
+                es_siervo: false
             });
         }
         setShowModal(true);
@@ -195,7 +201,12 @@ export default function StudentList() {
                                         <strong>{student.name}</strong>
                                     </td>
                                     <td data-label="Info">
-                                        {student.infoadd || "-"}
+                                        <span style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center' }}>
+                                            {student.es_anciano && <span title="Anciano" style={{ fontSize: '11px', background: 'rgba(168,85,247,0.15)', color: '#a855f7', padding: '2px 6px', borderRadius: '4px' }}>Anciano</span>}
+                                            {student.es_siervo && <span title="Siervo Ministerial" style={{ fontSize: '11px', background: 'rgba(59,130,246,0.15)', color: '#60a5fa', padding: '2px 6px', borderRadius: '4px' }}>Siervo</span>}
+                                            {student.infoadd && <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>{student.infoadd}</span>}
+                                            {!student.es_anciano && !student.es_siervo && !student.infoadd && "-"}
+                                        </span>
                                     </td>
                                     <td data-label="Teléfono">
                                         {student.telefono || "-"}
@@ -310,7 +321,7 @@ export default function StudentList() {
                                 </div>
                                 <div className="form-group">
                                     <label>Nota / Info. Adicional</label>
-                                    <input type="text" value={formData.infoadd} onChange={e => setFormData({ ...formData, infoadd: e.target.value })} placeholder="Ej: Ayudante, Siervo" />
+                                    <input type="text" value={formData.infoadd} onChange={e => setFormData({ ...formData, infoadd: e.target.value })} placeholder="Ej: Pionero, Visitante..." />
                                 </div>
                             </div>
 
@@ -318,45 +329,27 @@ export default function StudentList() {
                                 <div style={{ marginTop: '20px', padding: '16px', backgroundColor: '#1a1a1a', borderRadius: '8px', border: '1px solid #333' }}>
                                     <label style={{ fontSize: '14px', marginBottom: '12px', display: 'block', color: 'var(--accent-color)' }}>Privilegios / Asignaciones</label>
                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                                        <button 
-                                            type="button"
-                                            className={`toggle-btn-list ${formData.aseo ? 'active' : ''}`}
-                                            onClick={() => setFormData({ ...formData, aseo: !formData.aseo })}
-                                            style={{
-                                                padding: '8px', borderRadius: '6px', border: '1px solid #444',
-                                                background: formData.aseo ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
-                                                color: formData.aseo ? '#60a5fa' : '#888',
-                                                fontSize: '12px', cursor: 'pointer'
-                                            }}
-                                        >
-                                            Aseo {formData.aseo ? '✅' : '❌'}
-                                        </button>
-                                        <button 
-                                            type="button"
-                                            className={`toggle-btn-list ${formData.acomodador ? 'active' : ''}`}
-                                            onClick={() => setFormData({ ...formData, acomodador: !formData.acomodador })}
-                                            style={{
-                                                padding: '8px', borderRadius: '6px', border: '1px solid #444',
-                                                background: formData.acomodador ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
-                                                color: formData.acomodador ? '#60a5fa' : '#888',
-                                                fontSize: '12px', cursor: 'pointer'
-                                            }}
-                                        >
-                                            Acomodador {formData.acomodador ? '✅' : '❌'}
-                                        </button>
-                                        <button 
-                                            type="button"
-                                            className={`toggle-btn-list ${formData.microfonos ? 'active' : ''}`}
-                                            onClick={() => setFormData({ ...formData, microfonos: !formData.microfonos })}
-                                            style={{
-                                                padding: '8px', borderRadius: '6px', border: '1px solid #444',
-                                                background: formData.microfonos ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
-                                                color: formData.microfonos ? '#60a5fa' : '#888',
-                                                fontSize: '12px', cursor: 'pointer'
-                                            }}
-                                        >
-                                            Micrófonos {formData.microfonos ? '✅' : '❌'}
-                                        </button>
+                                        {[
+                                            { key: 'aseo', label: 'Aseo' },
+                                            { key: 'acomodador', label: 'Acomodador' },
+                                            { key: 'microfonos', label: 'Micrófonos' },
+                                            { key: 'es_anciano', label: 'Anciano' },
+                                            { key: 'es_siervo', label: 'Siervo Min.' },
+                                        ].map(({ key, label }) => (
+                                            <button
+                                                key={key}
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, [key]: !formData[key] })}
+                                                style={{
+                                                    padding: '8px', borderRadius: '6px', border: '1px solid #444',
+                                                    background: formData[key] ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
+                                                    color: formData[key] ? '#60a5fa' : '#888',
+                                                    fontSize: '12px', cursor: 'pointer'
+                                                }}
+                                            >
+                                                {label} {formData[key] ? '✅' : '❌'}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
                             )}

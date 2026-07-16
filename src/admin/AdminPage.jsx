@@ -8,6 +8,7 @@ import StudentList from "./StudentList";
 import CleaningManager from "./CleaningManager";
 import AssignmentManager from "./AssignmentManager";
 import GroupBoard from "./GroupBoard";
+import ScheduleGenerator from "./ScheduleGenerator";
 import ThemeToggle from "../components/ThemeToggle";
 import { AuthContext } from "../context/AuthContext";
 import "./AdminPage.css";
@@ -164,6 +165,14 @@ export default function AdminPage() {
                             {isSidebarOpen && <span className="tab-text">Estudiantes</span>}
                         </button>
                         <button
+                            className={`admin-tab ${tab === "schedule" ? "active" : ""}`}
+                            onClick={() => { setTab("schedule"); if (window.innerWidth <= 768) setIsSidebarOpen(false); }}
+                            title="📅 Programación"
+                        >
+                            <span className="tab-icon">📅</span>
+                            {isSidebarOpen && <span className="tab-text">Programación</span>}
+                        </button>
+                        <button
                             className={`admin-tab ${tab === "cleaning" ? "active" : ""}`}
                             onClick={() => { setTab("cleaning"); if (window.innerWidth <= 768) setIsSidebarOpen(false); }}
                             title="🧹 Aseo"
@@ -206,6 +215,17 @@ export default function AdminPage() {
                         >
                             <span className="tab-icon">🖨️</span>
                             {isSidebarOpen && <span className="tab-text">Ver Imprimible</span>}
+                        </a>
+                        <a
+                            href="/imprimir-grupos"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="admin-tab"
+                            style={{ textDecoration: 'none' }}
+                            title="📄 Imprimir Grupos"
+                        >
+                            <span className="tab-icon">📄</span>
+                            {isSidebarOpen && <span className="tab-text">Imprimir Grupos</span>}
                         </a>
 
                         {tab === "edit" && editingProgram && (
@@ -254,6 +274,9 @@ export default function AdminPage() {
                     <div className="tab-content fade-in">
                         <StudentList />
                     </div>
+                )}
+                {!loadingEdit && tab === "schedule" && (
+                    <ScheduleGenerator />
                 )}
                 {(!loadingEdit && tab === "cleaning") && (
                     <CleaningManager />

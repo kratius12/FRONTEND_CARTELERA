@@ -7,6 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import StagingPreview from "./StagingPreview";
 import CleaningSlide from "./CleaningSlide";
 import PrintSchedule from "./components/PrintSchedule";
+import PrintGroups from "./components/PrintGroups";
 
 export default function AppRoutes() {
   return (
@@ -16,6 +17,11 @@ export default function AppRoutes() {
       <Route path="/staging/:id" element={<StagingPreview />} />
       <Route path="/aseo" element={<CleaningSlide />} />
       <Route path="/imprimir" element={<PrintSchedule />} />
+      <Route path="/imprimir-grupos" element={
+        <ProtectedRoute>
+          <PrintGroups />
+        </ProtectedRoute>
+      } />
       <Route path="/login" element={<Login />} />
       <Route 
         path="/admin" 
