@@ -1,208 +1,252 @@
-.print-groups-page {
-    min-height: 100vh;
-    padding: 24px;
-    background: white;
-    color: black;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+/* ─── Screen wrapper ─── */
+.pg-page {
+  min-height: 100vh;
+  padding: 20px;
+  background: #f3f4f6;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  color: #111;
 }
 
-.print-controls {
-    margin-bottom: 18px;
-    padding: 14px;
-    background: #f4f4f4;
-    border-radius: 10px;
-    display: flex;
-    justify-content: center;
+/* ─── Toolbar ─── */
+.pg-toolbar {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
 }
 
-.print-controls-inner {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px;
-    justify-content: center;
+.pg-btn-back,
+.pg-btn-pdf,
+.pg-btn-print {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-.print-btn {
-    padding: 10px 20px;
-    background: #2563eb;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 700;
+.pg-btn-back  { background: #6b7280; color: #fff; }
+.pg-btn-back:hover  { background: #4b5563; }
+
+.pg-btn-pdf   { background: #16a34a; color: #fff; }
+.pg-btn-pdf:hover   { background: #15803d; }
+
+.pg-btn-print { background: #1d4ed8; color: #fff; }
+.pg-btn-print:hover { background: #1e40af; }
+
+/* ─── Content card ─── */
+.pg-content {
+  background: #fff;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 18px 20px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
 }
 
-.print-help {
-    color: #374151;
-    font-size: 14px;
+/* ─── Page header ─── */
+.pg-header {
+  text-align: center;
+  margin-bottom: 12px;
+  line-height: 1.2;
 }
 
-.print-groups-content {
-    max-width: 960px;
-    margin: 0 auto;
+.pg-header-title {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #111;
 }
 
-.print-title-block {
-    text-align: center;
-    margin-bottom: 18px;
+.pg-header-sub {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: #555;
+  margin-top: 2px;
 }
 
-.print-title-block h1 {
-    margin: 10px 0 6px;
-    font-size: 28px;
-    letter-spacing: 0.04em;
+/* ─── 3×2 grid (horizontal) ─── */
+.pg-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
 }
 
-.print-title-block p {
-    margin: 0;
-    color: #374151;
-    font-size: 14px;
+/* ─── Each group card ─── */
+.pg-card {
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #bbb;
 }
 
-.print-header-top {
-    display: flex;
-    justify-content: center;
-    align-items: baseline;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 8px;
-    color: #111827;
-    font-size: 12px;
-    letter-spacing: 0.2em;
+/* ── Dorado: grupos 1-3 ── */
+.pg-card--teal .pg-card-leaders-bar { background: #b8902a; }
+
+/* ── Vino tinto: grupos 4-6 ── */
+.pg-card--salmon .pg-card-leaders-bar { background: #8b1a1a; }
+
+/* ─── Barra de líderes (compartida) ─── */
+.pg-card-leaders-bar {
+  padding: 5px 10px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #fff;
+  line-height: 1.3;
 }
 
-.print-header-top strong {
-    font-size: 14px;
-    letter-spacing: 0.18em;
+/* ─── Barra del número de grupo (gris oscuro para todos) ─── */
+.pg-card-num-bar {
+  background: #4a4a4a;
+  padding: 4px 10px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #fff;
+  border-bottom: 1px solid #333;
 }
 
-.print-groups-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(220px, 1fr));
-    gap: 16px;
+/* ─── Member list — single column ─── */
+.pg-list {
+  list-style: none;
+  margin: 0;
+  padding: 3px 8px 4px;
 }
 
-.group-card {
-    padding: 12px;
-    border: 1px solid #111827;
-    border-radius: 8px;
-    background: #ffffff;
-    page-break-inside: avoid;
+.pg-item {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 1px 2px;
+  border-bottom: 0.5px solid #e5e7eb;
+  line-height: 1.4;
 }
 
-.group-card-title {
-    text-align: center;
-    margin-bottom: 12px;
+.pg-item:last-child {
+  border-bottom: none;
 }
 
-.group-card-meta {
-    display: inline-block;
-    background: #111827;
-    color: #f9fafb;
-    padding: 6px 10px;
-    border-radius: 999px;
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    margin-bottom: 10px;
+.pg-item-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: #666;
+  min-width: 16px;
+  flex-shrink: 0;
 }
 
-.group-card-name {
-    font-size: 18px;
-    font-weight: 800;
-    text-transform: uppercase;
-    line-height: 1.1;
-    color: #111827;
+.pg-item-name {
+  font-size: 11px;
+  color: #111;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
 }
 
-.group-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    gap: 4px;
+/* ─── Misc ─── */
+.pg-empty {
+  text-align: center;
+  color: #6b7280;
+  padding: 32px;
 }
 
-.group-item {
-    display: grid;
-    grid-template-columns: 30px 1fr;
-    gap: 10px;
-    align-items: center;
-    padding: 8px 10px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    background: #f9fafb;
+.pg-error {
+  color: #b91c1c;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 16px;
+  max-width: 640px;
+  margin: 32px auto;
+  text-align: center;
 }
 
-.group-item:nth-child(2n) {
-    background: #ffffff;
-}
-
-.group-item-index {
-    font-weight: 700;
-    color: #111827;
-}
-
-.group-item-name {
-    color: #111827;
-    font-size: 13px;
-}
-
-.group-table,
-.group-header,
-.group-item-name,
-.group-card-meta {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.error-message {
-    color: #b91c1c;
-    padding: 16px;
-    background: #fee2e2;
-    border: 1px solid #fecaca;
-    border-radius: 10px;
-    max-width: 640px;
-    margin: 32px auto;
-    text-align: center;
-}
-
-.no-groups {
-    color: #374151;
-    text-align: center;
-    padding: 28px;
-    background: #f9fafb;
-    border: 1px dashed #d1d5db;
-    border-radius: 10px;
-}
-
+/* ─── Print styles ─── */
 @media print {
-    @page {
-        margin: 0.8cm;
-    }
-    body {
-        margin: 0;
-        background: white;
-    }
-    .no-print {
-        display: none !important;
-    }
-    .print-groups-page {
-        padding: 0;
-    }
-    .print-controls {
-        display: none;
-    }
-    .print-groups-content {
-        max-width: 100%;
-    }
-    .group-card {
-        page-break-inside: avoid;
-        border: 1px solid #000;
-    }
-    .group-table th,
-    .group-table td {
-        font-size: 12px;
-        padding: 8px 10px;
-    }
+  @page {
+    size: letter portrait;
+    margin: 0.3cm;
+  }
+
+  body {
+    background: white;
+    margin: 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .no-print,
+  .pg-toolbar {
+    display: none !important;
+  }
+
+  .pg-page {
+    padding: 0;
+    background: white;
+  }
+
+  .pg-content {
+    max-width: 100%;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+  }
+
+  .pg-header {
+    margin-bottom: 6px;
+  }
+
+  .pg-header-title {
+    font-size: 14px;
+  }
+
+  .pg-header-sub {
+    font-size: 10px;
+  }
+
+  .pg-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+  }
+
+  .pg-card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .pg-card-leaders-bar {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .pg-card-num-bar {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+
+  .pg-list {
+    padding: 2px 6px;
+  }
+
+  .pg-item {
+    padding: 0;
+    border-bottom: none;
+    line-height: 1.3;
+  }
+
+  .pg-item-num {
+    font-size: 13px;
+    min-width: 18px;
+  }
+
+  .pg-item-name {
+    font-size: 13px;
+  }
 }

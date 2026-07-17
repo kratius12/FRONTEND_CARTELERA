@@ -58,6 +58,10 @@ function MenuSelector({ onSelect }) {
                     <span style={{ fontSize: "36px" }}>📖</span>
                     <span className="menu-card-label">Programación de<br />Reuniones</span>
                 </button>
+                <button onClick={() => window.location.href = "/imprimir-grupos"} className="menu-card">
+                    <span style={{ fontSize: "36px" }}>👥</span>
+                    <span className="menu-card-label">Grupos de<br />Servicio</span>
+                </button>
             </div>
         </div>
     );
@@ -267,8 +271,9 @@ function ProgramCard({ payload, hideHeader = false }) {
 
                         {songs.length > 0 && renderBullets(songs)}
 
+                        <div className="fb-rows">
                         {columns && (
-                            <div className="fb-twohead">
+                            <div className="fb-twohead-row">
                                 <div />
                                 <div className="fb-twohead-right">
                                     <div>{columns[0]}</div>
@@ -276,8 +281,6 @@ function ProgramCard({ payload, hideHeader = false }) {
                                 </div>
                             </div>
                         )}
-
-                        <div className="fb-rows">
                             {rows.map((item, i) => {
                                 counter++;
                                 const assigned = Array.isArray(item.assigned) ? item.assigned : [];
@@ -422,6 +425,13 @@ function MeetingProgramsView({ onBack }) {
     }
 
     // ── Paso 2: Impresión — 2 programas por página ────────────────────────────
+    const SPECIAL_KEYWORDS = ["asamblea regional", "asamblea de circuito", "conmemoración", "conmemoracion"];
+
+    const isSpecial = (payload) => {
+        const title = (payload?.title || "").toLowerCase();
+        return SPECIAL_KEYWORDS.some(k => title.includes(k));
+    };
+
     // Agrupar de a 2
     const pairs = [];
     for (let i = 0; i < programs.length; i += 2) {
@@ -453,16 +463,23 @@ function MeetingProgramsView({ onBack }) {
             </div>
 
             <div id="printable-area-meeting">
-                {pairs.map((pair, pairIdx) => (
-                    <div
-                        key={pairIdx}
-                        className={`fb-pair${pairIdx < pairs.length - 1 ? " fb-page-break" : ""}`}
-                    >
-                        {pair.map(({ payload }, i) => (
-                            <ProgramCard key={i} payload={payload} hideHeader={i > 0} />
-                        ))}
-                    </div>
-                ))}
+                {pairs.map((pair, pairIdx) => {
+                    const firstSpecial = pair.length > 0 && isSpecial(pair[0].payload);
+                    return (
+                        <div
+                            key={pairIdx}
+                            className={[
+                                "fb-pair",
+                                pairIdx < pairs.length - 1 ? "fb-page-break" : "",
+                                firstSpecial ? "fb-pair--special" : "",
+                            ].filter(Boolean).join(" ")}
+                        >
+                            {pair.map(({ payload }, i) => (
+                                <ProgramCard key={i} payload={payload} hideHeader={i > 0} />
+                            ))}
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );

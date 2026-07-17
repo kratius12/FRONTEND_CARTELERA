@@ -230,8 +230,8 @@
 /* Línea cortada entre los 2 programas de un par (se muestra en pantalla y en impresión) */
 .fb-pair > .fb-card + .fb-card {
     border-top: 1.5px dashed #bbb;
-    margin-top: 4px;
-    padding-top: 4px;
+    margin-top: 2px;
+    padding-top: 2px;
 }
 
 /* Salto de página después de cada par (excepto el último) */
@@ -240,12 +240,28 @@
     break-after: page;
 }
 
+/* Cuando el primer programa es especial (Asamblea / Conmemoración),
+   ocupa al menos la mitad de la página → el segundo empieza en la mitad */
+.fb-pair--special > .fb-card:first-child {
+    min-height: 47vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+/* Indicador visual en pantalla */
+.fb-pair--special > .fb-card + .fb-card {
+    border-top: 2px dashed #aaa;
+    margin-top: 0;
+    padding-top: 6px;
+}
+
 /* ── Tarjeta de programa ── */
 .fb-card {
-    padding: 10px 16px 12px;
+    padding: 8px 14px 8px;
     font-family: Arial, Helvetica, sans-serif;
     color: #111;
-    font-size: 11.5px;
+    font-size: 12.5px;
 }
 
 /* Topline: ORIENTE | título | espaciador */
@@ -295,14 +311,15 @@
 
 .fb-meta-left {
     font-weight: 700;
-    font-size: 10.5px;
+    font-size: 12px;
     color: #111;
 }
 
 .fb-meta-right {
-    font-size: 10.5px;
+    font-size: 12px;
     color: #111;
-    line-height: 1.6;
+    line-height: 1.5;
+    white-space: nowrap;
 }
 
 .fb-label {
@@ -314,71 +331,79 @@
 
 /* Lista de canciones/intro */
 .fb-bullets {
-    margin: 4px 0 0;
+    margin: 2px 0 0;
     padding-left: 14px;
-    font-size: 11px;
+    font-size: 12px;
     color: #111;
 }
-.fb-bullets li { margin: 2px 0; }
+.fb-bullets li { margin: 1px 0; }
 
 /* Secciones */
-.fb-section { margin-top: 6px; }
+.fb-section { margin-top: 4px; }
 
 .fb-bar {
     color: #fff;
     font-weight: 700;
     text-transform: uppercase;
-    padding: 4px 8px;
-    font-size: 10.5px;
+    padding: 3px 8px;
+    font-size: 11.5px;
     letter-spacing: 0.02em;
     border-radius: 2px;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
 }
 
-/* Filas numeradas */
+/* Filas numeradas — ancho fijo en la columna de nombres para alinear entre secciones */
 .fb-rows {
-    margin-top: 3px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.fb-row {
+    margin-top: 2px;
     display: grid;
-    grid-template-columns: 1fr 185px;
-    gap: 8px;
+    grid-template-columns: 1fr 245px;
+    column-gap: 12px;
+    row-gap: 1px;
     align-items: baseline;
 }
 
-.fb-left  { font-size: 11.5px; color: #111; }
-.fb-right { text-align: left; font-size: 11.5px; white-space: nowrap; color: #111; }
+/* display:contents hace que left y right participen directamente en el grid padre */
+.fb-row {
+    display: contents;
+}
+
+.fb-left  { font-size: 12.5px; color: #111; }
+.fb-right {
+    text-align: left;
+    font-size: 12.5px;
+    color: #111;
+    white-space: nowrap;
+}
 
 /* Dos columnas (Estudiante / Ayudante) */
-.fb-twohead {
-    display: grid;
-    grid-template-columns: 1fr 185px;
-    gap: 8px;
-    margin-top: 3px;
-    align-items: end;
+/* El encabezado vive dentro de fb-rows y comparte su grid */
+.fb-twohead-row {
+    display: contents;
 }
 
 .fb-twohead-right {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    font-size: 9.5px;
+    gap: 12px;
+    font-size: 10px;
     font-weight: 700;
     color: #555;
     text-transform: capitalize;
+    white-space: nowrap;
+    align-self: end;
 }
 
 .fb-twocol .fb-right,
 .fb-twocol-right {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    white-space: normal;
+    gap: 12px;
+}
+
+.fb-twocol-right > div,
+.fb-twohead-right > div {
+    white-space: nowrap;
 }
 
 .fb-muted      { color: #777; }
@@ -419,7 +444,9 @@
         print-color-adjust: exact;
     }
 
-    .schedule-table { font-size: 12.5px; }
-    .main-header { font-size: 14px; margin-bottom: 2px; }
+    .schedule-table { font-size: 13px; }
+    .schedule-table th, .schedule-table td { padding: 4px 6px; }
+    .main-header { font-size: 15px; margin-bottom: 2px; }
+    .section-header { font-size: 13px; }
     .schedule-section { margin-bottom: 6px; }
 }
