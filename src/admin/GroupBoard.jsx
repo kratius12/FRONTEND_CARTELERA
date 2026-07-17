@@ -396,8 +396,6 @@ function StudentCard({ student, onDragStart, onDragEnd, onClick, isMoving }) {
 }
 
 function StudentModal({ student, onClose, isInGroup, onSetRole, onUpdateStudent }) {
-  const isEligible = student.infoadd?.toUpperCase().includes("SIERVO MINISTERIAL") || 
-                     student.infoadd?.toUpperCase().includes("ANCIANO");
   const currentRole = student.group_info?.role;
 
   const [localData, setLocalData] = useState({
@@ -432,7 +430,7 @@ function StudentModal({ student, onClose, isInGroup, onSetRole, onUpdateStudent 
 
         <div className="modal-field">
           <span className="modal-label">Info Especial</span>
-          <span className="modal-value" style={{color: isEligible ? 'var(--accent-color)' : 'white'}}>
+          <span className="modal-value" style={{color: (student.es_anciano || student.es_siervo) ? 'var(--accent-color)' : 'white'}}>
             {student.infoadd || "N/A"}
           </span>
         </div>
@@ -454,7 +452,7 @@ function StudentModal({ student, onClose, isInGroup, onSetRole, onUpdateStudent 
           </div>
         )}
 
-        {isInGroup && isEligible && (
+        {isInGroup && (
           <div className="modal-actions">
             <button className={`role-btn ${currentRole === "Encargado" ? "active" : ""}`} onClick={() => onSetRole(student, currentRole === "Encargado" ? null : "Encargado")}>{currentRole === "Encargado" ? "Quitar Encargado" : "Hacer Encargado"}</button>
             <button className={`role-btn ${currentRole === "Auxiliar" ? "active" : ""}`} onClick={() => onSetRole(student, currentRole === "Auxiliar" ? null : "Auxiliar")}>{currentRole === "Auxiliar" ? "Quitar Auxiliar" : "Hacer Auxiliar"}</button>
