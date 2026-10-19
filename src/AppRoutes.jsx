@@ -8,6 +8,9 @@ import StagingPreview from "./StagingPreview";
 import CleaningSlide from "./CleaningSlide";
 import PrintSchedule from "./components/PrintSchedule";
 import PrintGroups from "./components/PrintGroups";
+import PreachingReportsPage from "./admin/PreachingReportsPage";
+import GroupReportPage from "./GroupReportPage";
+import PioneerProgressPage from "./admin/PioneerProgressPage";
 
 export default function AppRoutes() {
   return (
@@ -31,6 +34,18 @@ export default function AppRoutes() {
           </ProtectedRoute>
         } 
       />
+      <Route path="/informes" element={
+        <ProtectedRoute>
+          <PreachingReportsPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/informes/precursores/:tipo" element={
+        <ProtectedRoute>
+          <PioneerProgressPage />
+        </ProtectedRoute>
+      } />
+      {/* Link secreto de cada grupo: sin login */}
+      <Route path="/informe-grupo/:token" element={<GroupReportPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

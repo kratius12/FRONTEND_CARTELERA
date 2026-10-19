@@ -39,6 +39,7 @@ function extractSections(parts = []) {
     return secs.length ? secs.map((s) => ({
         ...s,
         items: (s.items || []).map((it) => ({
+            type: it.type || "bullet",
             text: it.text || "",
             minutes: it.minutes ?? "",
             assigned: it.assigned?.length ? [...it.assigned, ""].slice(0, 2) : ["", ""],
@@ -577,7 +578,7 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
                                         <button type="button" className="icon-btn danger small" onClick={() => removeItem(si, ii)}>✕</button>
                                     </div>
 
-                                    {!isSong && sec.columns && (
+                                    {!isSong && (sec.columns ? (
                                         <div className="form-row form-row--2" style={{ paddingLeft: 28 }}>
                                             <div className="form-group">
                                                 <label>{sec.columns[0]}</label>
@@ -588,7 +589,19 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
                                                 <input type="text" value={item.assigned?.[1] || ""} onChange={(e) => updateItemAssigned(si, ii, 1, e.target.value)} />
                                             </div>
                                         </div>
-                                    )}
+                                    ) : (
+                                        <div className="form-row form-row--2" style={{ paddingLeft: 28 }}>
+                                            <div className="form-group">
+                                                <label>Encargado</label>
+                                                <input
+                                                    type="text"
+                                                    value={item.assigned?.[0] || ""}
+                                                    onChange={(e) => updateItemAssigned(si, ii, 0, e.target.value)}
+                                                    placeholder="Nombre del encargado"
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             );
                         })}
