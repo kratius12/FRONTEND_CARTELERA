@@ -9,6 +9,7 @@ import CleaningManager from "./CleaningManager";
 import AssignmentManager from "./AssignmentManager";
 import GroupBoard from "./GroupBoard";
 import ScheduleGenerator from "./ScheduleGenerator";
+import PreachingReports from "./PreachingReports";
 import ThemeToggle from "../components/ThemeToggle";
 import { AuthContext } from "../context/AuthContext";
 import "./AdminPage.css";
@@ -204,6 +205,14 @@ export default function AdminPage() {
                             <span className="tab-icon">🗂️</span>
                             {isSidebarOpen && <span className="tab-text">Grupos</span>}
                         </button>
+                        <button
+                            className={`admin-tab ${tab === "reports" ? "active" : ""}`}
+                            onClick={() => { setTab("reports"); if (window.innerWidth <= 768) setIsSidebarOpen(false); }}
+                            title="📝 Informes de predicación"
+                        >
+                            <span className="tab-icon">📝</span>
+                            {isSidebarOpen && <span className="tab-text">Informes de predicación</span>}
+                        </button>
 
                         <a
                             href="/imprimir"
@@ -289,6 +298,9 @@ export default function AdminPage() {
                 )}
                 {!loadingEdit && tab === "groups" && (
                     <GroupBoard />
+                )}
+                {!loadingEdit && tab === "reports" && (
+                    <PreachingReports />
                 )}
                 {!loadingEdit && tab === "edit" && editingProgram && (
                     <ProgramForm

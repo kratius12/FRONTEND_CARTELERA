@@ -4,6 +4,17 @@ import "./AdminPage.css"; // Usa los estilos base
 
 const API = import.meta.env.VITE_API_URL || "";
 
+// Precursorado fijo: regular o auxiliar indefinido (como mucho una marca).
+// El auxiliar en campaña no queda fijo: se asigna por mes en Informes de predicación.
+const PIONEER_OPTIONS = [
+    { value: "", label: "No es precursor" },
+    { value: "es_precursor_aux_ind", label: "Precursor auxiliar indefinido", tag: "P. Aux. indefinido" },
+    { value: "es_precursor_reg", label: "Precursor regular", tag: "P. Regular" },
+];
+const PIONEER_FLAGS = ["es_precursor_aux_camp", "es_precursor_aux_ind", "es_precursor_reg"];
+const pioneerOf = (s) => PIONEER_OPTIONS.find((o) => o.value && s && s[o.value])?.value || "";
+const pioneerFlags = (value) => Object.fromEntries(PIONEER_FLAGS.map((f) => [f, f === value]));
+
 export default function StudentList() {
     const { token, logout } = useContext(AuthContext);
     const [students, setStudents] = useState([]);
@@ -29,7 +40,10 @@ export default function StudentList() {
         acomodador: false,
         microfonos: false,
         es_anciano: false,
-        es_siervo: false
+        es_siervo: false,
+        es_precursor_aux_camp: false,
+        es_precursor_aux_ind: false,
+        es_precursor_reg: false
     });
 
     const fetchStudents = async () => {
@@ -69,7 +83,8 @@ export default function StudentList() {
                 acomodador: student.acomodador || false,
                 microfonos: student.microfonos || false,
                 es_anciano: student.es_anciano || false,
-                es_siervo: student.es_siervo || false
+                es_siervo: student.es_siervo || false,
+                ...pioneerFlags(pioneerOf(student))
             });
         } else {
             setEditingId(null);
@@ -83,7 +98,10 @@ export default function StudentList() {
                 acomodador: false,
                 microfonos: false,
                 es_anciano: false,
-                es_siervo: false
+                es_siervo: false,
+                es_precursor_aux_camp: false,
+                es_precursor_aux_ind: false,
+                es_precursor_reg: false
             });
         }
         setShowModal(true);
@@ -152,6 +170,7 @@ export default function StudentList() {
             (s.name || "").toLowerCase().includes(term) ||
             (s.status || "").toLowerCase().includes(term) ||
             (s.infoadd || "").toLowerCase().includes(term) ||
+            (PIONEER_OPTIONS.find((o) => o.value && o.value === pioneerOf(s))?.label || "").toLowerCase().includes(term) ||
             (s.telefono || "").toLowerCase().includes(term) ||
             genderText.includes(term)
         );
@@ -204,8 +223,13 @@ export default function StudentList() {
                                         <span style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center' }}>
                                             {student.es_anciano && <span title="Anciano" style={{ fontSize: '11px', background: 'rgba(168,85,247,0.15)', color: '#a855f7', padding: '2px 6px', borderRadius: '4px' }}>Anciano</span>}
                                             {student.es_siervo && <span title="Siervo Ministerial" style={{ fontSize: '11px', background: 'rgba(59,130,246,0.15)', color: '#60a5fa', padding: '2px 6px', borderRadius: '4px' }}>Siervo</span>}
+                                            {pioneerOf(student) && (
+                                                <span title={PIONEER_OPTIONS.find((o) => o.value === pioneerOf(student)).label} style={{ fontSize: '11px', background: student.es_precursor_reg ? 'rgba(34,197,94,0.15)' : 'rgba(245,158,11,0.15)', color: student.es_precursor_reg ? '#16a34a' : '#d97706', padding: '2px 6px', borderRadius: '4px' }}>
+                                                    {PIONEER_OPTIONS.find((o) => o.value === pioneerOf(student)).tag}
+                                                </span>
+                                            )}
                                             {student.infoadd && <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>{student.infoadd}</span>}
-                                            {!student.es_anciano && !student.es_siervo && !student.infoadd && "-"}
+                                            {!student.es_anciano && !student.es_siervo && !pioneerOf(student) && !student.infoadd && "-"}
                                         </span>
                                     </td>
                                     <td data-label="Teléfono">
@@ -323,6 +347,21 @@ export default function StudentList() {
                                     <label>Nota / Info. Adicional</label>
                                     <input type="text" value={formData.infoadd} onChange={e => setFormData({ ...formData, infoadd: e.target.value })} placeholder="Ej: Pionero, Visitante..." />
                                 </div>
+                            </div>
+
+                            <div className="form-group" style={{ marginTop: '16px' }}>
+                                <label>Precursorado</label>
+                                <select
+                                    value={pioneerOf(formData)}
+                                    onChange={e => setFormData({ ...formData, ...pioneerFlags(e.target.value) })}
+                                >
+                                    {PIONEER_OPTIONS.map(o => (
+                                        <option key={o.value} value={o.value}>{o.label}</option>
+                                    ))}
+                                </select>
+                                <small style={{ display: 'block', marginTop: '6px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                    El auxiliar en campaña se asigna por mes en 📝 Informes de predicación.
+                                </small>
                             </div>
 
                             {formData.gender === "1" && (
