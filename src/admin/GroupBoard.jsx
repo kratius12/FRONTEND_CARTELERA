@@ -1,5 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import Icon from "./AdminIcons";
+import { ErrorNote, Loading, Modal, PageHeader, StatCard, StatGrid } from "./AdminWidgets";
 import "./AdminPage.css";
 
 const API = import.meta.env.VITE_API_URL || "";
@@ -14,6 +16,7 @@ export default function GroupBoard() {
   const [movingId, setMovingId] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [searchTerms, setSearchTerms] = useState({});
+  const [overId, setOverId] = useState(null);
 
   const handleSearchChange = (id, value) => {
     setSearchTerms(prev => ({ ...prev, [id]: value }));
@@ -91,6 +94,7 @@ export default function GroupBoard() {
 
   const handleDragEnd = () => {
     setMovingId(null);
+    setOverId(null);
   };
 
   const handleDrop = async (e, targetGroupId) => {
@@ -141,8 +145,9 @@ export default function GroupBoard() {
     }
   };
 
-  const handleDragOver = (e) => {
+  const handleDragOver = (e, id) => {
     e.preventDefault();
+    if (overId !== id) setOverId(id);
   };
 
   const handleSetRole = async (student, role) => {
@@ -194,37 +199,71 @@ export default function GroupBoard() {
   }
   const unassignedStudents = allStudents.filter(s => !assignedStudentIds.has(String(s.id)));
 
-  if (loading) return <div className="loading">Cargando tablero...</div>;
+  if (loading) return <Loading>Cargando tablero...</Loading>;
+
+  const assignedCount = allStudents.length - unassignedStudents.length;
+
+  // Resalta la columna sobre la que se está arrastrando
+  const columnProps = (id) => ({
+    className: `kanban-column ${id === "" ? "unassigned-column" : ""} ${overId === id ? "is-over" : ""}`,
+    onDragOver: (e) => handleDragOver(e, id),
+    onDragLeave: (e) => { if (!e.currentTarget.contains(e.relatedTarget)) setOverId(null); },
+    onDrop: (e) => { setOverId(null); handleDrop(e, id); },
+  });
 
   return (
     <div className="group-board-container fade-in">
-      <div className="board-header">
-        <h2>Tablero de Grupos</h2>
+      <PageHeader
+        icon="grid"
+        title="Tablero de Grupos"
+        count={groups.length}
+        subtitle="Arrastra a cada persona al grupo que le corresponde. Haz clic en una tarjeta para ver sus datos."
+      >
         <form onSubmit={handleCreateGroup} className="create-group-form">
           <input
             type="text"
             placeholder="Nuevo grupo..."
             value={newGroupName}
             onChange={(e) => setNewGroupName(e.target.value)}
+            aria-label="Nombre del nuevo grupo"
           />
-          <button type="submit">Crear</button>
+          <button type="submit" className="adm-btn adm-btn--primary"><Icon name="plus" size={16} /> Crear</button>
         </form>
+      </PageHeader>
+
+      {error && <ErrorNote>{error}</ErrorNote>}
+
+      <StatGrid label="Resumen de grupos">
+        <StatCard icon="grid" tone="teal" label="Grupos" value={groups.length} hint="grupos de servicio" />
+        <StatCard
+          icon="userCheck"
+          tone="cyan"
+          label="Con grupo"
+          value={assignedCount}
+          hint={`de ${allStudents.length} personas`}
+          trend={allStudents.length ? { dir: "flat", text: `${Math.round((assignedCount / allStudents.length) * 100)} %` } : undefined}
+        />
+        <StatCard icon="userX" tone="blue" label="Sin grupo" value={unassignedStudents.length} hint="pendientes de asignar" />
+      </StatGrid>
+
+      <div className="adm-board-legend" style={{ marginBottom: "14px" }}>
+        <span><span className="gender-dot gender-1" aria-hidden="true" /> Hombre</span>
+        <span><span className="gender-dot gender-0" aria-hidden="true" /> Mujer</span>
+        <span><span className="role-tag">ENC</span> Encargado</span>
+        <span><span className="role-tag">AUX</span> Auxiliar</span>
       </div>
 
       <div className="board-layout">
-        <div
-          className="kanban-column unassigned-column"
-          onDragOver={handleDragOver}
-          onDrop={(e) => handleDrop(e, "")}
-        >
+        <div {...columnProps("")}>
           <div className="column-header">
-            <h3 className="column-title">Sin Grupo ({unassignedStudents.length})</h3>
+            <h3 className="column-title">Sin Grupo <span className="adm-count">{unassignedStudents.length}</span></h3>
             <input
               type="text"
               className="column-search"
               placeholder="Buscar..."
               value={searchTerms["unassigned"] || ""}
               onChange={(e) => handleSearchChange("unassigned", e.target.value)}
+              aria-label="Buscar entre las personas sin grupo"
             />
           </div>
           <div className="column-content">
@@ -249,27 +288,24 @@ export default function GroupBoard() {
             const filteredStudents = filterStudents(group.students, term);
 
             return (
-              <div
-                key={group.id}
-                className="kanban-column"
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, group.id)}
-              >
+              <div key={group.id} {...columnProps(group.id)}>
                 <div className="column-header">
                   <h3 className="column-title">
-                    {group.name} ({group.students.length})
-                    {(encargado || auxiliar) && (
-                      <div className="group-leaders">
-                        {encargado?.name || "---"} | {auxiliar?.name || "---"}
-                      </div>
-                    )}
+                    {group.name}
+                    <span className="adm-count">{group.students.length}</span>
                   </h3>
+                  {(encargado || auxiliar) && (
+                    <div className="group-leaders">
+                      <strong>{encargado?.name || "---"}</strong> | <strong>{auxiliar?.name || "---"}</strong>
+                    </div>
+                  )}
                   <input
                     type="text"
                     className="column-search"
                     placeholder="Buscar..."
                     value={term}
                     onChange={(e) => handleSearchChange(group.id, e.target.value)}
+                    aria-label={`Buscar en ${group.name}`}
                   />
                 </div>
                 <div className="column-content">
@@ -299,77 +335,6 @@ export default function GroupBoard() {
           onUpdateStudent={handleUpdateStudent}
         />
       )}
-
-      <style>{`
-        .group-board-container { padding: 20px; height: 100%; display: flex; flex-direction: column; }
-        .board-header { display: flex; justify-content: space-between; margin-bottom: 24px; }
-        .create-group-form { display: flex; gap: 8px; }
-        .create-group-form input { padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: white; }
-        
-        .board-layout { display: flex; gap: 24px; flex: 1; align-items: flex-start; }
-        .unassigned-column { min-width: 280px; max-width: 280px; border-style: dashed; }
-        
-        .groups-grid { 
-          display: grid; 
-          grid-template-columns: repeat(3, 1fr); 
-          gap: 20px; 
-          flex: 1; 
-        }
-        
-        .kanban-column {
-          background: rgba(255, 255, 255, 0.03);
-          border: 1px solid var(--border-color);
-          border-radius: 12px;
-          display: flex;
-          flex-direction: column;
-          max-height: 480px;
-        }
-        .column-header { padding: 12px; border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.2); border-radius: 12px 12px 0 0; }
-        .column-title { margin: 0; font-size: 0.9rem; margin-bottom: 8px; }
-        .column-search { width: 100%; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: white; font-size: 0.8rem; }
-        
-        .group-leaders { font-size: 0.7rem; color: var(--accent-color); margin-top: 4px; font-weight: normal; }
-        .column-content { padding: 10px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
-        
-        .student-card { background: var(--bg-secondary); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); cursor: grab; transition: all 0.2s; }
-        .student-card:hover { border-color: var(--accent-color); transform: translateY(-2px); }
-        .card-name { font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; justify-content: space-between; }
-        .gender-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; }
-        .gender-1 { background: #3b82f6; }
-        .gender-0 { background: #ec4899; }
-        
-        .role-tag { font-size: 0.65rem; background: var(--accent-color); color: black; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-        
-        .modal-overlay {
-          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-          background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000;
-          backdrop-filter: blur(4px);
-        }
-        .modal-content {
-          background: #1e1e1e; padding: 24px; border-radius: 12px; width: 400px;
-          border: 1px solid var(--border-color); position: relative;
-        }
-        .modal-close { position: absolute; top: 12px; right: 12px; background: none; border: none; color: white; cursor: pointer; font-size: 1.2rem; }
-        .modal-field { margin-bottom: 16px; }
-        .modal-label { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; display: block; margin-bottom: 4px; }
-        .modal-value { font-size: 1rem; color: white; }
-        
-        .modal-actions { display: flex; gap: 10px; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px; }
-        .role-btn { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid var(--accent-color); background: none; color: var(--accent-color); cursor: pointer; font-size: 0.8rem; }
-        .role-btn:hover { background: var(--accent-color); color: black; }
-        .role-btn.active { background: var(--accent-color); color: black; }
-
-        .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-        .permissions-section { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color); }
-        .toggles-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 8px; }
-        .toggle-btn { 
-          padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); 
-          background: rgba(255,255,255,0.05); color: white; cursor: pointer; font-size: 0.75rem;
-          transition: all 0.2s;
-        }
-        .toggle-btn.active { border-color: var(--accent-color); background: rgba(59, 130, 246, 0.1); }
-        .toggle-btn:hover { background: rgba(255,255,255,0.1); }
-      `}</style>
     </div>
   );
 }
@@ -383,14 +348,16 @@ function StudentCard({ student, onDragStart, onDragEnd, onClick, isMoving }) {
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       onClick={onClick}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } }}
+      role="button"
+      tabIndex={0}
+      aria-label={`${student.name}${role ? `, ${role}` : ""}`}
     >
-      <div className="card-name">
-        <div style={{display: 'flex', alignItems: 'center'}}>
-          <span className={`gender-dot gender-${student.gender}`}></span>
-          {student.name}
-        </div>
-        {role && <span className="role-tag">{role === "Encargado" ? "ENC" : "AUX"}</span>}
-      </div>
+      <span className="card-name">
+        <span className={`gender-dot gender-${student.gender}`} aria-hidden="true"></span>
+        {student.name}
+      </span>
+      {role && <span className="role-tag">{role === "Encargado" ? "ENC" : "AUX"}</span>}
     </div>
   );
 }
@@ -412,53 +379,69 @@ function StudentModal({ student, onClose, isInGroup, onSetRole, onUpdateStudent 
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>&times;</button>
-        <h3>Información del Estudiante</h3>
-        
-        <div className="modal-grid">
-          <div className="modal-field">
-            <span className="modal-label">Nombre</span>
-            <span className="modal-value">{student.name}</span>
-          </div>
-          <div className="modal-field">
-            <span className="modal-label">Teléfono</span>
-            <span className="modal-value">{student.telefono || "N/A"}</span>
-          </div>
+    <Modal
+      title="Información del Estudiante"
+      icon="user"
+      onClose={onClose}
+      footer={isInGroup ? (
+        <div className="adm-role-actions">
+          <button
+            type="button"
+            className={`adm-btn ${currentRole === "Encargado" ? "adm-btn--primary" : "adm-btn--ghost"}`}
+            onClick={() => onSetRole(student, currentRole === "Encargado" ? null : "Encargado")}
+          >
+            {currentRole === "Encargado" ? "Quitar Encargado" : "Hacer Encargado"}
+          </button>
+          <button
+            type="button"
+            className={`adm-btn ${currentRole === "Auxiliar" ? "adm-btn--primary" : "adm-btn--ghost"}`}
+            onClick={() => onSetRole(student, currentRole === "Auxiliar" ? null : "Auxiliar")}
+          >
+            {currentRole === "Auxiliar" ? "Quitar Auxiliar" : "Hacer Auxiliar"}
+          </button>
         </div>
-
-        <div className="modal-field">
-          <span className="modal-label">Info Especial</span>
-          <span className="modal-value" style={{color: (student.es_anciano || student.es_siervo) ? 'var(--accent-color)' : 'white'}}>
+      ) : null}
+    >
+      <div className="adm-detail-grid">
+        <div className="adm-detail">
+          <span>Nombre</span>
+          <strong>{student.name}</strong>
+        </div>
+        <div className="adm-detail">
+          <span>Teléfono</span>
+          <strong>{student.telefono || "N/A"}</strong>
+        </div>
+        <div className="adm-detail adm-detail--full">
+          <span>Info Especial</span>
+          <strong style={{ color: (student.es_anciano || student.es_siervo) ? "var(--adm-accent-text)" : undefined }}>
             {student.infoadd || "N/A"}
-          </span>
+          </strong>
         </div>
-
-        {student.gender === 1 && (
-          <div className="permissions-section">
-            <span className="modal-label">Privilegios / Asignaciones</span>
-            <div className="toggles-grid">
-              <button className={`toggle-btn ${localData.aseo ? 'active' : ''}`} onClick={() => handleToggle('aseo')}>
-                Aseo {localData.aseo ? '✅' : '❌'}
-              </button>
-              <button className={`toggle-btn ${localData.acomodador ? 'active' : ''}`} onClick={() => handleToggle('acomodador')}>
-                Acomodador {localData.acomodador ? '✅' : '❌'}
-              </button>
-              <button className={`toggle-btn ${localData.microfonos ? 'active' : ''}`} onClick={() => handleToggle('microfonos')}>
-                Micrófonos {localData.microfonos ? '✅' : '❌'}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {isInGroup && (
-          <div className="modal-actions">
-            <button className={`role-btn ${currentRole === "Encargado" ? "active" : ""}`} onClick={() => onSetRole(student, currentRole === "Encargado" ? null : "Encargado")}>{currentRole === "Encargado" ? "Quitar Encargado" : "Hacer Encargado"}</button>
-            <button className={`role-btn ${currentRole === "Auxiliar" ? "active" : ""}`} onClick={() => onSetRole(student, currentRole === "Auxiliar" ? null : "Auxiliar")}>{currentRole === "Auxiliar" ? "Quitar Auxiliar" : "Hacer Auxiliar"}</button>
-          </div>
-        )}
       </div>
-    </div>
+
+      {student.gender === 1 && (
+        <div className="adm-subcard">
+          <span className="adm-subcard-title">Privilegios / Asignaciones</span>
+          <div className="adm-toggle-grid">
+            {[
+              { key: "aseo", label: "Aseo" },
+              { key: "acomodador", label: "Acomodador" },
+              { key: "microfonos", label: "Micrófonos" },
+            ].map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                className={`adm-toggle ${localData[key] ? "is-on" : ""}`}
+                aria-pressed={localData[key]}
+                onClick={() => handleToggle(key)}
+              >
+                {label}
+                <span className="adm-toggle-dot" aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </Modal>
   );
 }

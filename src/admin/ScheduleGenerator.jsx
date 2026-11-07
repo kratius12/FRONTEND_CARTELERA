@@ -1,5 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import Icon from "./AdminIcons";
+import { EmptyState, Loading, PageHeader, Pager } from "./AdminWidgets";
 
 const API = import.meta.env.VITE_API_URL || "";
 
@@ -29,50 +31,37 @@ function HistorySection({ title, icon, rows, columns }) {
     const visible = rows.slice((page - 1) * perPage, page * perPage);
 
     return (
-        <div style={{ flex: 1, minWidth: "280px" }}>
-            <h4 style={{ margin: "0 0 8px", color: "var(--text-primary)", fontSize: "14px" }}>
-                {icon} {title}
-            </h4>
+        <section className="adm-card">
+            <div className="adm-card-head adm-card-head--line">
+                <h4 className="adm-card-title"><Icon name={icon} size={18} /> {title}</h4>
+                <span className="adm-count">{rows.length}</span>
+            </div>
             {rows.length === 0 ? (
-                <p style={{ color: "var(--text-secondary)", fontSize: "13px" }}>Sin registros aún.</p>
+                <EmptyState icon={icon} title="Sin registros aún." />
             ) : (
                 <>
-                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
-                        <thead>
-                            <tr style={{ background: "var(--bg-tertiary)" }}>
-                                {columns.map(c => (
-                                    <th key={c} style={{ padding: "6px 10px", textAlign: "left", color: "var(--text-secondary)", fontWeight: 600, borderBottom: "1px solid var(--border-color)" }}>
-                                        {c}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {visible.map((row, i) => (
-                                <tr key={i} style={{ borderBottom: "1px solid var(--border-color)" }}>
-                                    {row.map((cell, j) => (
-                                        <td key={j} style={{ padding: "6px 10px", color: "var(--text-primary)" }}>{cell}</td>
-                                    ))}
+                    <div className="adm-table-wrap">
+                        <table className="adm-table">
+                            <thead>
+                                <tr>
+                                    {columns.map(c => <th key={c}>{c}</th>)}
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    {total > 1 && (
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "8px" }}>
-                            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                                style={{ padding: "3px 10px", fontSize: "12px", cursor: page === 1 ? "not-allowed" : "pointer", opacity: page === 1 ? 0.5 : 1, border: "1px solid var(--border-color)", borderRadius: "4px", background: "var(--bg-primary)", color: "var(--text-primary)" }}>
-                                ‹
-                            </button>
-                            <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>{page} / {total}</span>
-                            <button onClick={() => setPage(p => Math.min(total, p + 1))} disabled={page === total}
-                                style={{ padding: "3px 10px", fontSize: "12px", cursor: page === total ? "not-allowed" : "pointer", opacity: page === total ? 0.5 : 1, border: "1px solid var(--border-color)", borderRadius: "4px", background: "var(--bg-primary)", color: "var(--text-primary)" }}>
-                                ›
-                            </button>
-                        </div>
-                    )}
+                            </thead>
+                            <tbody>
+                                {visible.map((row, i) => (
+                                    <tr key={i}>
+                                        {row.map((cell, j) => (
+                                            <td key={j} className={j === 0 ? "adm-cell-strong" : undefined}>{cell}</td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    {total > 1 && <Pager compact page={page} total={total} onChange={setPage} />}
                 </>
             )}
-        </div>
+        </section>
     );
 }
 
@@ -171,93 +160,97 @@ export default function ScheduleGenerator() {
 
     return (
         <div className="tab-content fade-in">
-            <h2 style={{ marginBottom: "4px" }}>📅 Generador de Programación</h2>
-            <p style={{ color: "var(--text-secondary)", marginBottom: "24px", fontSize: "14px" }}>
-                Genera aseo, micrófonos y acomodadores para el mismo rango de semanas en un solo paso.
-            </p>
+            <PageHeader
+                icon="calendar"
+                title="Generador de Programación"
+                subtitle="Genera aseo, micrófonos y acomodadores para el mismo rango de semanas en un solo paso."
+            />
 
             {/* Toast */}
             {toast && (
-                <div style={{
-                    marginBottom: "16px", padding: "12px 16px", borderRadius: "8px",
-                    background: toast.type === "success" ? "rgba(16,185,129,0.12)" : "rgba(239,68,68,0.12)",
-                    border: `1px solid ${toast.type === "success" ? "#10b981" : "#ef4444"}`,
-                    color: toast.type === "success" ? "#10b981" : "#ef4444",
-                    fontSize: "14px"
-                }}>
-                    {toast.msg}
+                <div className={`adm-alert ${toast.type === "success" ? "adm-alert--ok" : "adm-alert--error"}`} role="status">
+                    <Icon name={toast.type === "success" ? "check" : "alert"} size={18} />
+                    <span>{toast.msg}</span>
                 </div>
             )}
 
             {/* Formulario */}
-            <div style={{ padding: "20px", background: "var(--bg-secondary)", borderRadius: "8px", border: "1px solid var(--border-color)", marginBottom: "28px" }}>
-                <h3 style={{ margin: "0 0 16px", color: "var(--text-primary)" }}>⚙️ Parámetros</h3>
-                <div style={{ display: "flex", gap: "20px", flexWrap: "wrap", alignItems: "flex-end" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                        <label style={{ fontSize: "13px", color: "var(--text-secondary)" }}>Semanas a generar</label>
-                        <input
-                            type="number" min="1" max="50" value={nWeeks}
-                            onChange={e => setNWeeks(Number(e.target.value))}
-                            style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-primary)", width: "110px" }}
-                        />
+            <section className="adm-card">
+                <div className="adm-card-head adm-card-head--line">
+                    <div>
+                        <h3 className="adm-card-title"><Icon name="sliders" size={18} /> Parámetros</h3>
+                        <p className="adm-card-sub">Si no eliges semana inicial, continúa después de la última generada.</p>
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                        <label style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
-                            Semana inicial <span style={{ opacity: 0.6 }}>(opcional — continúa automáticamente)</span>
-                        </label>
-                        <input
-                            type="date" value={startDate}
-                            onChange={e => setStartDate(e.target.value)}
-                            style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--border-color)", background: "var(--bg-primary)", color: "var(--text-primary)" }}
-                        />
-                    </div>
-                    <button
-                        onClick={handleGenerate}
-                        disabled={generating}
-                        className="submit-btn"
-                        style={{ height: "38px", minWidth: "200px" }}
-                    >
-                        {generating ? "Generando..." : "✨ Generar los 3 módulos"}
-                    </button>
                 </div>
-
-                {/* Resumen del último resultado */}
-                {lastResult && (
-                    <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid var(--border-color)", display: "flex", gap: "24px", flexWrap: "wrap" }}>
-                        {[
-                            { label: "Semanas generadas", value: lastResult.n_weeks },
-                            { label: "Inicio", value: formatDate(lastResult.start_date) },
-                            { label: "Aseo", value: `${lastResult.cleaning_weeks} sem.` },
-                            { label: "Micrófonos", value: `${lastResult.micro_weeks} sem.` },
-                            { label: "Acomodadores", value: `${lastResult.attendant_weeks} sem.` },
-                        ].map(({ label, value }) => (
-                            <div key={label} style={{ textAlign: "center" }}>
-                                <div style={{ fontSize: "11px", color: "var(--text-secondary)", marginBottom: "2px" }}>{label}</div>
-                                <div style={{ fontWeight: "bold", color: "var(--accent-color)", fontSize: "15px" }}>{value}</div>
-                            </div>
-                        ))}
+                <div className="adm-card-body">
+                    <div className="adm-param-row">
+                        <label className="adm-field">
+                            <span className="adm-label">Semanas a generar</span>
+                            <input
+                                className="adm-input"
+                                type="number" min="1" max="50" value={nWeeks}
+                                onChange={e => setNWeeks(Number(e.target.value))}
+                            />
+                        </label>
+                        <label className="adm-field">
+                            <span className="adm-label">Semana inicial <span className="adm-muted">(opcional)</span></span>
+                            <input
+                                className="adm-input"
+                                type="date" value={startDate}
+                                onChange={e => setStartDate(e.target.value)}
+                            />
+                        </label>
+                        <button
+                            type="button"
+                            onClick={handleGenerate}
+                            disabled={generating}
+                            className="adm-btn adm-btn--primary"
+                            style={{ height: "42px" }}
+                        >
+                            {generating
+                                ? <><span className="adm-spinner adm-spinner--sm" aria-hidden="true" /> Generando...</>
+                                : <><Icon name="sparkles" size={16} /> Generar los 3 módulos</>}
+                        </button>
                     </div>
-                )}
-            </div>
+
+                    {/* Resumen del último resultado */}
+                    {lastResult && (
+                        <div className="adm-result">
+                            {[
+                                { label: "Semanas generadas", value: lastResult.n_weeks },
+                                { label: "Inicio", value: formatDate(lastResult.start_date) },
+                                { label: "Aseo", value: `${lastResult.cleaning_weeks} sem.` },
+                                { label: "Micrófonos", value: `${lastResult.micro_weeks} sem.` },
+                                { label: "Acomodadores", value: `${lastResult.attendant_weeks} sem.` },
+                            ].map(({ label, value }) => (
+                                <div key={label} className="adm-mini">
+                                    <span>{label}</span>
+                                    <strong>{value}</strong>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </section>
 
             {/* Historiales */}
-            <h3 style={{ margin: "0 0 16px", color: "var(--text-primary)" }}>📖 Historial actual</h3>
+            <h3 className="adm-section-title"><Icon name="history" size={18} /> Historial actual</h3>
             {loadingHistory ? (
-                <p style={{ color: "var(--text-secondary)" }}>Cargando...</p>
+                <Loading>Cargando...</Loading>
             ) : (
-                <div style={{ display: "flex", gap: "20px", flexWrap: "wrap", alignItems: "flex-start" }}>
+                <div className="adm-history-grid">
                     <HistorySection
-                        title="Aseo" icon="🧹"
+                        title="Aseo" icon="sparkles"
                         rows={cleaningRows}
                         columns={["Semana", "Grupos", "Encargado", "Supervisor"]}
                     />
                     <HistorySection
-                        title="Micrófonos" icon="🎤"
+                        title="Micrófonos" icon="mic"
                         rows={microRows}
                         columns={["Fecha", "Asignado 1", "Asignado 2"]}
                     />
                     <HistorySection
-                        title="Acomodadores" icon="🛡️"
+                        title="Acomodadores" icon="door"
                         rows={attendantRows}
                         columns={["Fecha", "Puerta", "Sala Principal"]}
                     />

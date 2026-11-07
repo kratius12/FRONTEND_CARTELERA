@@ -4,9 +4,12 @@ import { useState, useEffect, useContext } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { GroupReportTable, MonthPicker, SaveBar } from "./PreachingReportsParts";
-import { computeTotals, currentServiceYear, defaultMonth, groupTitle, monthLabel, serviceYearMonths, toPayload } from "./preachingReportsUtils";
+import { computeTotals, currentServiceYear, defaultMonth, groupTitle, hasReported, monthLabel, serviceYearMonths, toPayload } from "./preachingReportsUtils";
 import { slugForStatus } from "./pioneerGoals";
 import { usePreachingReportEdits } from "./usePreachingReportEdits";
+import Icon from "./AdminIcons";
+import { ColumnChart, RingChart } from "./AdminCharts";
+import { Loading, PageHeader } from "./AdminWidgets";
 import "./PreachingReports.css";
 
 const API = import.meta.env.VITE_API_URL || "";
@@ -107,6 +110,11 @@ export default function PreachingReports() {
         { key: "aux_ind", one: "Auxiliar indefinido", many: "Auxiliares indefinidos" },
         { key: "aux_camp", one: "Auxiliar de campaña", many: "Auxiliares de campaña" },
     ].map((s) => ({ ...s, ...totals.precursores[s.key] }));
+    // Avance de cada grupo: personas con informe (SP, NP o horas) sobre el total del grupo
+    const groupProgress = groups.map((g) => {
+        const rows = g.rows.map(getRow);
+        return { id: g.id, label: groupTitle(g.name).replace("GRUPO # ", "Grupo "), done: rows.filter(hasReported).length, total: rows.length };
+    });
 
     // Al abrir el seguimiento se sale de la planilla: avisar si hay cambios sin guardar
     const confirmLeave = (e) => {
@@ -117,14 +125,11 @@ export default function PreachingReports() {
         <div className="pr-page fade-in">
             {toast && <div className="toast">{toast}</div>}
 
-            <div className="pr-header">
-                <div>
-                    <h2 className="pr-title">📝 Informes de predicación</h2>
-                    <p className="pr-subtitle">
-                        Informe de <strong>{monthLabel(month)}</strong> · año de servicio {currentServiceYear()}, por grupo de servicio.
-                    </p>
-                </div>
-
+            <PageHeader
+                icon="fileText"
+                title="Informes de predicación"
+                subtitle={<>Informe de <strong style={{ textTransform: "capitalize" }}>{monthLabel(month)}</strong> · año de servicio {currentServiceYear()}, por grupo de servicio.</>}
+            >
                 <div className="pr-toolbar">
                     <MonthPicker month={month} onChange={changeMonth} />
 
@@ -148,18 +153,18 @@ export default function PreachingReports() {
                         onClick={() => setShowLinks((v) => !v)}
                         aria-expanded={showLinks}
                     >
-                        🔗 Links por grupo
+                        <Icon name="link" size={16} /> Links por grupo
                     </button>
                 </div>
-            </div>
+            </PageHeader>
 
             {showLinks && <GroupLinksPanel token={token} onAuthError={handleAuthError} showToast={showToast} />}
 
-            {loading && <div className="admin-status">Cargando informes…</div>}
+            {loading && <Loading>Cargando informes…</Loading>}
             {!loading && error && <div className="admin-status error">{error}</div>}
             {!loading && !error && groups.length === 0 && (
                 <div className="admin-status">
-                    No hay grupos con integrantes. Asigna personas a los grupos en la pestaña <strong>🗂️ Grupos</strong>.
+                    No hay grupos con integrantes. Asigna personas a los grupos en la sección <strong>Grupos</strong>.
                 </div>
             )}
 
@@ -169,7 +174,7 @@ export default function PreachingReports() {
                         <h3 className="pr-summary-title">Totales de {monthLabel(month)} · toda la congregación</h3>
                         {pendingCount > 0 && <span className="pr-summary-note">Incluye cambios sin guardar</span>}
                     </div>
-                    <div className="pr-summary-body">
+                    <div className="adm-report-body">
                         <div className="pr-pioneers">
                             <ul className="pr-pioneer-stats" aria-label={`Precursores de ${monthLabel(month)}`}>
                                 {pioneerStats.map((s) => (
@@ -183,7 +188,7 @@ export default function PreachingReports() {
                                             <strong className="pr-pioneer-num">{s.personas}</strong>
                                             <span className="pr-pioneer-label">{s.personas === 1 ? s.one : s.many}</span>
                                             <span className="pr-pioneer-sub">
-                                                {s.personas ? `${s.informaron} con informe` : " "}
+                                                {s.personas ? `${s.informaron} con informe` : " "}
                                             </span>
                                             <span className="pr-pioneer-go" aria-hidden="true">Ver metas ›</span>
                                         </Link>
@@ -195,42 +200,81 @@ export default function PreachingReports() {
                                 Haz clic en una tarjeta para ver cómo va cada precursor con su meta.
                             </p>
                         </div>
-                        <table className="pr-summary-table">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>Informes</th>
-                                    <th>Horas</th>
-                                    <th>Estudios</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {summaryRows.map((r) => (
-                                    <tr key={r.key}>
-                                        <td>{r.label}</td>
-                                        <td>{r.informes}</td>
-                                        <td>{r.horas === null ? "—" : r.horas}</td>
-                                        <td>{r.estudios}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td>Total</td>
-                                    <td>{totals.total.informes}</td>
-                                    <td>{totals.total.horas}</td>
-                                    <td>{totals.total.estudios}</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                        <ul className="pr-summary-facts">
-                            <li><strong>{totals.total.informes + totals.noParticiparon}</strong> de {totals.personas} personas entregaron informe</li>
-                            <li><strong>{totals.noParticiparon}</strong> no participaron (NP)</li>
-                            <li><strong>{totals.sinInforme}</strong> todavía sin informe</li>
-                            {totals.servicioSagrado > 0 && (
-                                <li><strong>{totals.servicioSagrado}</strong> h de servicio sagrado (precursores)</li>
-                            )}
-                        </ul>
+
+                        <div className="adm-report-grid">
+                            <div className="adm-chart-card">
+                                <h4 className="adm-chart-title">Informes entregados por grupo</h4>
+                                <p className="adm-chart-sub">Porcentaje de personas de cada grupo que ya entregaron su informe (incluye NP).</p>
+                                <ColumnChart
+                                    ariaLabel={`Informes entregados por grupo en ${monthLabel(month)}`}
+                                    columns={groupProgress.map((g) => ({
+                                        key: g.id,
+                                        label: g.label,
+                                        value: g.total ? g.done / g.total : 0,
+                                        display: `${g.done}/${g.total}`,
+                                        tip: `${g.label}: ${g.done} de ${g.total} con informe`,
+                                    }))}
+                                />
+                            </div>
+
+                            <div className="adm-chart-card">
+                                <h4 className="adm-chart-title">Entrega de informes</h4>
+                                <p className="adm-chart-sub">{totals.total.informes + totals.noParticiparon} de {totals.personas} personas entregaron informe.</p>
+                                <RingChart
+                                    value={totals.total.informes + totals.noParticiparon}
+                                    total={totals.personas}
+                                    centerLabel="entregaron"
+                                    tiles={[
+                                        { label: "Informes", value: totals.total.informes },
+                                        { label: "No participaron", value: totals.noParticiparon },
+                                        { label: "Sin informe", value: totals.sinInforme },
+                                    ]}
+                                />
+                            </div>
+
+                            <div className="adm-chart-card">
+                                <h4 className="adm-chart-title">Resumen por tipo de publicador</h4>
+                                <p className="adm-chart-sub">Informes, horas y estudios del mes.</p>
+                                <div className="adm-summary-split">
+                                    <table className="pr-summary-table">
+                                        <thead>
+                                            <tr>
+                                                <th></th>
+                                                <th>Informes</th>
+                                                <th>Horas</th>
+                                                <th>Estudios</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {summaryRows.map((r) => (
+                                                <tr key={r.key}>
+                                                    <td>{r.label}</td>
+                                                    <td>{r.informes}</td>
+                                                    <td>{r.horas === null ? "—" : r.horas}</td>
+                                                    <td>{r.estudios}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td>Total</td>
+                                                <td>{totals.total.informes}</td>
+                                                <td>{totals.total.horas}</td>
+                                                <td>{totals.total.estudios}</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                    <ul className="pr-summary-facts">
+                                        <li><strong>{totals.total.informes + totals.noParticiparon}</strong> de {totals.personas} personas entregaron informe</li>
+                                        <li><strong>{totals.noParticiparon}</strong> no participaron (NP)</li>
+                                        <li><strong>{totals.sinInforme}</strong> todavía sin informe</li>
+                                        {totals.servicioSagrado > 0 && (
+                                            <li><strong>{totals.servicioSagrado}</strong> h de servicio sagrado (precursores)</li>
+                                        )}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </section>
             )}
@@ -319,7 +363,7 @@ function GroupLinksPanel({ token, onAuthError, showToast }) {
                 </p>
             </div>
             {error && <div className="admin-status error">{error}</div>}
-            {!error && !links && <div className="admin-status">Cargando links…</div>}
+            {!error && !links && <Loading>Cargando links…</Loading>}
             {links && (
                 <ul className="pr-links-list">
                     {links.map((link) => (
