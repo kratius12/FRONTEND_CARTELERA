@@ -2,6 +2,8 @@
 // Tabla de programas en STAGING con botón para publicar.
 import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import Icon from "./AdminIcons";
+import { ConfirmDialog, EmptyState, ErrorNote, Loading, PageHeader } from "./AdminWidgets";
 
 const API = import.meta.env.VITE_API_URL || "";
 
@@ -21,7 +23,7 @@ function formatDate(d) {
     });
 }
 
-export default function StagingList({ onPublished, onEdit }) {
+export default function StagingList({ onPublished, onEdit, onChanged }) {
     const { token, logout } = useContext(AuthContext);
     const [programs, setPrograms] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -116,6 +118,7 @@ export default function StagingList({ onPublished, onEdit }) {
             setToast(`🗑️ Borrador de "${confirmDeleteModal.title || formatDate(confirmDeleteModal.week_start)}" eliminado`);
             setTimeout(() => setToast(""), 3000);
             load();
+            onChanged?.();
         } catch (e) {
             alert(`❌ Error al eliminar: ${e.message}`);
         }
@@ -151,6 +154,7 @@ export default function StagingList({ onPublished, onEdit }) {
             setTimeout(() => {
                 setToast("");
                 load();
+                onChanged?.();
             }, 2500);
         } catch (err) {
             setToast(`❌ Error: ${err.message}`);
@@ -188,6 +192,7 @@ export default function StagingList({ onPublished, onEdit }) {
             setTimeout(() => {
                 setToast("");
                 load();
+                onChanged?.();
             }, 2500);
         } catch (err) {
             setToast(`❌ Error: ${err.message}`);
@@ -197,149 +202,158 @@ export default function StagingList({ onPublished, onEdit }) {
         }
     };
 
-    if (loading) return <div className="admin-status">Cargando staging…</div>;
-    if (error) return <div className="admin-status error">{error}</div>;
+    if (loading) return <Loading>Cargando staging…</Loading>;
+    if (error) return <ErrorNote>{error}</ErrorNote>;
 
     return (
         <div>
-            {toast && <div className="toast">{toast}</div>}
+            {toast && <div className="toast" role="status">{toast}</div>}
 
             {confirmDeleteModal && (
-                <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 9999, background: "rgba(0,0,0,0.6)", display: "flex", justifyContent: "center", alignItems: "center" }}>
-                    <div style={{ background: "var(--bg-primary)", padding: "24px", borderRadius: "12px", boxShadow: "0 10px 25px rgba(0,0,0,0.2)", maxWidth: "400px", width: "90%", color: "var(--text-primary)", textAlign: "center" }}>
-                        <h3 style={{ marginTop: 0, marginBottom: "16px", color: "#ef4444" }}>⚠️ Eliminar Borrador</h3>
-                        <p style={{ marginBottom: "24px" }}>
-                            ¿Estás seguro de que deseas eliminar permanentemente el borrador <strong>"{confirmDeleteModal.title || formatDate(confirmDeleteModal.week_start)}"</strong>?
-                        </p>
-                        <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
-                            <button 
-                                onClick={() => setConfirmDeleteModal(null)}
-                                style={{ padding: "8px 16px", borderRadius: "6px", border: "1px solid var(--border-color)", background: "transparent", color: "var(--text-primary)", cursor: "pointer", fontWeight: "bold" }}
-                            >
-                                Cancelar
-                            </button>
-                            <button 
-                                onClick={executeDelete}
-                                style={{ padding: "8px 16px", borderRadius: "6px", border: "none", background: "#ef4444", color: "white", cursor: "pointer", fontWeight: "bold" }}
-                            >
-                                🗑️ Sí, Eliminar
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <ConfirmDialog
+                    title="Eliminar Borrador"
+                    onConfirm={executeDelete}
+                    onCancel={() => setConfirmDeleteModal(null)}
+                >
+                    <p>
+                        ¿Estás seguro de que deseas eliminar permanentemente el borrador <strong>"{confirmDeleteModal.title || formatDate(confirmDeleteModal.week_start)}"</strong>?
+                    </p>
+                </ConfirmDialog>
             )}
 
-            <div className="list-toolbar">
-                <h2 className="list-title">
-                    Programas Temporales
-                    <span className="list-badge">{programs.length}</span>
-                </h2>
-                
-                <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
-                    <input
-                        type="text"
-                        value={urlImport}
-                        onChange={(e) => setUrlImport(e.target.value)}
-                        placeholder="Pega la URL de la guía JW.org"
-                        style={{ minWidth: "260px", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--border-color)", flex: "1" }}
-                        disabled={importingUrl}
-                    />
+            <PageHeader
+                icon="clock"
+                title="Programas Temporales"
+                count={programs.length}
+                subtitle="Borradores que todavía no aparecen en la cartelera. Revísalos y publícalos cuando estén listos."
+            >
+                <button type="button" className="adm-btn adm-btn--ghost" onClick={load} title="Recargar">
+                    <Icon name="refresh" size={16} /> Recargar
+                </button>
+            </PageHeader>
+
+            <section className="adm-card adm-card-body" aria-label="Importar guía">
+                <div className="adm-import">
+                    <label className="adm-input-pill">
+                        <Icon name="globe" size={18} />
+                        <input
+                            type="text"
+                            value={urlImport}
+                            onChange={(e) => setUrlImport(e.target.value)}
+                            placeholder="Pega la URL de la guía JW.org"
+                            disabled={importingUrl}
+                            aria-label="URL de la guía JW.org"
+                        />
+                    </label>
                     <button
-                        className="publish-btn"
+                        type="button"
+                        className="adm-btn adm-btn--primary"
                         onClick={handleUrlImport}
                         disabled={!urlImport.trim() || importingUrl}
-                        style={{ whiteSpace: "nowrap", marginTop: 0, opacity: !urlImport.trim() ? 0.6 : 1 }}
                     >
-                        {importingUrl ? "⏳ Importando..." : "🌐 Importar Guía (URL)"}
+                        {importingUrl ? <><span className="adm-spinner adm-spinner--sm" aria-hidden="true" /> Importando...</> : <><Icon name="globe" size={16} /> Importar Guía (URL)</>}
                     </button>
-                    <input 
-                        type="file" 
+                    <input
+                        type="file"
                         accept="application/pdf"
                         id="pdf-upload-staging"
                         style={{ display: "none" }}
                         onChange={handlePdfUpload}
                         disabled={uploadingPdf}
                     />
-                    <label 
-                        htmlFor="pdf-upload-staging" 
-                        className="publish-btn" 
-                        style={{ display: "inline-block", cursor: uploadingPdf ? "wait" : "pointer", opacity: uploadingPdf ? 0.7 : 1, margin: 0 }}
+                    <label
+                        htmlFor="pdf-upload-staging"
+                        className={`adm-btn adm-btn--ghost ${uploadingPdf ? "is-busy" : ""}`}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.currentTarget.click(); } }}
                     >
-                        {uploadingPdf ? "⏳ Subiendo..." : "📥 Subir Guía (PDF)"}
+                        {uploadingPdf ? <><span className="adm-spinner adm-spinner--sm" aria-hidden="true" /> Subiendo...</> : <><Icon name="upload" size={16} /> Subir Guía (PDF)</>}
                     </label>
+                </div>
+            </section>
 
-                    <button className="icon-btn" onClick={load} title="Recargar">
-                        🔄 Recargar
-                    </button>
+            <section className="adm-card">
+                <div className="adm-card-head adm-card-head--line">
+                    <div>
+                        <h3 className="adm-card-title">Borradores</h3>
+                        <p className="adm-card-sub">Ordenados de la semana más reciente a la más antigua.</p>
+                    </div>
                 </div>
-            </div>
-
-            {programs.length === 0 ? (
-                <div className="admin-status">
-                    No hay programas temporales. Crea uno nuevo desde la pestaña <strong>+ Nuevo programa</strong>.
-                </div>
-            ) : (
-                <div className="table-container">
-                    <table className="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Título</th>
-                                <th style={{ textAlign: "right" }}>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {programs.map((p) => {
-                                const isPublishing = publishing === p.id;
-                                return (
-                                    <tr key={p.id}>
-                                        <td data-label="Fecha">
-                                            <div style={{ fontWeight: 600 }}>{formatDate(p.week_start)}</div>
-                                            <div style={{ fontSize: "12px", opacity: 0.7 }}>al {formatDate(p.week_end)}</div>
-                                        </td>
-                                        <td data-label="Título" style={{ fontWeight: 500 }}>
-                                            {p.title || <em className="muted">Sin título</em>}
-                                        </td>
-                                        <td data-label="Acciones" className="actions-cell" style={{ textAlign: "right" }}>
-                                            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
-                                                <button
-                                                    className="publish-btn"
-                                                    onClick={() => handlePublish(p.id, p.title)}
-                                                    disabled={isPublishing}
-                                                >
-                                                    {isPublishing ? "⏳..." : "🚀 Publicar"}
-                                                </button>
-                                                <button
-                                                    className="icon-btn"
-                                                    style={{ borderColor: "var(--accent-color)", color: "var(--accent-color)" }}
-                                                    onClick={() => window.open(`${window.location.origin}/staging/${p.id}`, "_blank")}
-                                                    title="Ver vista previa"
-                                                >
-                                                    👁️
-                                                </button>
-                                                <button
-                                                    className="icon-btn"
-                                                    onClick={() => onEdit?.(p)}
-                                                    title="Editar"
-                                                >
-                                                    ✏️
-                                                </button>
-                                                <button
-                                                    className="icon-btn danger"
-                                                    onClick={() => handleDelete(p)}
-                                                    title="Eliminar"
-                                                >
-                                                    🗑️
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+                {programs.length === 0 ? (
+                    <EmptyState icon="clock" title="No hay programas temporales.">
+                        Crea uno nuevo desde <strong>Nuevo Programa</strong> o importa la guía.
+                    </EmptyState>
+                ) : (
+                    <div className="table-container">
+                        <table className="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Título</th>
+                                    <th style={{ textAlign: "right" }}>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {programs.map((p) => {
+                                    const isPublishing = publishing === p.id;
+                                    return (
+                                        <tr key={p.id}>
+                                            <td data-label="Fecha">
+                                                <span className="adm-cell-strong">{formatDate(p.week_start)}</span>
+                                                <span className="adm-cell-sub">al {formatDate(p.week_end)}</span>
+                                            </td>
+                                            <td data-label="Título">
+                                                {p.title ? <span className="adm-cell-strong">{p.title}</span> : <em className="adm-muted">Sin título</em>}
+                                                <span className="adm-cell-sub"><span className="adm-badge adm-badge--warn">Sin publicar</span></span>
+                                            </td>
+                                            <td data-label="Acciones" className="actions-cell" style={{ textAlign: "right" }}>
+                                                <div className="adm-actions">
+                                                    <button
+                                                        type="button"
+                                                        className="adm-btn adm-btn--primary adm-btn--sm"
+                                                        onClick={() => handlePublish(p.id, p.title)}
+                                                        disabled={isPublishing}
+                                                    >
+                                                        {isPublishing ? "Publicando…" : <><Icon name="send" size={15} /> Publicar</>}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="adm-action"
+                                                        onClick={() => window.open(`${window.location.origin}/staging/${p.id}`, "_blank")}
+                                                        title="Ver vista previa"
+                                                        aria-label="Ver vista previa"
+                                                    >
+                                                        <Icon name="eye" size={17} />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="adm-action"
+                                                        onClick={() => onEdit?.(p)}
+                                                        title="Editar"
+                                                        aria-label="Editar"
+                                                    >
+                                                        <Icon name="edit" size={17} />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="adm-action adm-action--danger"
+                                                        onClick={() => handleDelete(p)}
+                                                        title="Eliminar"
+                                                        aria-label="Eliminar"
+                                                    >
+                                                        <Icon name="trash" size={17} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </section>
         </div>
     );
 }

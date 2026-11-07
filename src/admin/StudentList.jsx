@@ -1,5 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import Icon from "./AdminIcons";
+import { EmptyState, ErrorNote, Loading, Modal, PageHeader, Pager, StatCard, StatGrid } from "./AdminWidgets";
 import "./AdminPage.css"; // Usa los estilos base
 
 const API = import.meta.env.VITE_API_URL || "";
@@ -14,6 +16,7 @@ const PIONEER_OPTIONS = [
 const PIONEER_FLAGS = ["es_precursor_aux_camp", "es_precursor_aux_ind", "es_precursor_reg"];
 const pioneerOf = (s) => PIONEER_OPTIONS.find((o) => o.value && s && s[o.value])?.value || "";
 const pioneerFlags = (value) => Object.fromEntries(PIONEER_FLAGS.map((f) => [f, f === value]));
+const initialsOf = (name = "") => name.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("") || "?";
 
 export default function StudentList() {
     const { token, logout } = useContext(AuthContext);
@@ -181,225 +184,229 @@ export default function StudentList() {
     const indexOfFirstRecord = indexOfLastRecord - rowsPerPage;
     const currentRecords = filteredStudents.slice(indexOfFirstRecord, indexOfLastRecord);
 
-    if (loading) return <div className="loading">Cargando base de datos de estudiantes...</div>;
-    if (error) return <div className="error-box">{error}</div>;
+    if (loading) return <Loading>Cargando base de datos de estudiantes...</Loading>;
+    if (error) return <ErrorNote>{error}</ErrorNote>;
+
+    const activeCount = students.filter((st) => st.status === "Activo").length;
+    const pioneerCount = students.filter((st) => pioneerOf(st)).length;
+    const eldersCount = students.filter((st) => st.es_anciano || st.es_siervo).length;
+    const pct = (n) => (students.length ? Math.round((n / students.length) * 100) : 0);
 
     return (
         <div className="list-wrapper">
-            <div className="list-header" style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem', alignItems: 'center' }}>
-                <input
-                    type="text"
-                    placeholder="Buscar estudiante..."
-                    value={searchTerm}
-                    onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                    style={{ padding: '8px 12px', border: '1px solid var(--border-color)', borderRadius: '6px', width: '100%', maxWidth: '300px' }}
-                />
-                <button className="add-btn" onClick={() => handleOpenModal()} style={{ margin: 0 }}>
-                    + Añadir Estudiante
+            <PageHeader
+                icon="users"
+                title="Estudiantes"
+                count={students.length}
+                subtitle="Personas de la congregación, sus datos de contacto y privilegios."
+            >
+                <button type="button" className="adm-btn adm-btn--primary" onClick={() => handleOpenModal()}>
+                    <Icon name="plus" size={16} /> Añadir Estudiante
                 </button>
-            </div>
+            </PageHeader>
 
-            {filteredStudents.length === 0 ? (
-                <div className="empty-state">No se encontraron estudiantes.</div>
-            ) : (
-                <div className="table-container">
-                    <table className="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Info</th>
-                                <th>Teléfono</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {currentRecords.map((student) => (
-                                <tr key={student.id}>
-                                    <td data-label="Nombre">
-                                        <strong>{student.name}</strong>
-                                    </td>
-                                    <td data-label="Info">
-                                        <span style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center' }}>
-                                            {student.es_anciano && <span title="Anciano" style={{ fontSize: '11px', background: 'rgba(168,85,247,0.15)', color: '#a855f7', padding: '2px 6px', borderRadius: '4px' }}>Anciano</span>}
-                                            {student.es_siervo && <span title="Siervo Ministerial" style={{ fontSize: '11px', background: 'rgba(59,130,246,0.15)', color: '#60a5fa', padding: '2px 6px', borderRadius: '4px' }}>Siervo</span>}
-                                            {pioneerOf(student) && (
-                                                <span title={PIONEER_OPTIONS.find((o) => o.value === pioneerOf(student)).label} style={{ fontSize: '11px', background: student.es_precursor_reg ? 'rgba(34,197,94,0.15)' : 'rgba(245,158,11,0.15)', color: student.es_precursor_reg ? '#16a34a' : '#d97706', padding: '2px 6px', borderRadius: '4px' }}>
-                                                    {PIONEER_OPTIONS.find((o) => o.value === pioneerOf(student)).tag}
-                                                </span>
-                                            )}
-                                            {student.infoadd && <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>{student.infoadd}</span>}
-                                            {!student.es_anciano && !student.es_siervo && !pioneerOf(student) && !student.infoadd && "-"}
-                                        </span>
-                                    </td>
-                                    <td data-label="Teléfono">
-                                        {student.telefono || "-"}
-                                    </td>
-                                    <td data-label="Estado">
-                                        <span className={`badge ${student.status === 'Activo' ? 'Activo' : 'Inactivo'}`} style={{
-                                            padding: '4px 8px',
-                                            borderRadius: '12px',
-                                            fontSize: '0.75rem',
-                                            fontWeight: 'bold',
-                                            backgroundColor: student.status === 'Activo' ? 'rgba(46, 204, 113, 0.15)' : 'rgba(231, 76, 60, 0.15)',
-                                            color: student.status === 'Activo' ? '#27ae60' : '#e74c3c'
-                                        }}>
-                                            {student.status}
-                                        </span>
-                                    </td>
-                                    <td data-label="Acciones">
-                                        <div className="action-buttons">
-                                            <button className="icon-btn edit" onClick={() => handleOpenModal(student)} title="Editar">✏️</button>
-                                            <button className="icon-btn danger" onClick={() => handleDelete(student.id)} title="Eliminar">🗑️</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+            <StatGrid label="Resumen de estudiantes">
+                <StatCard icon="users" tone="teal" label="Registrados" value={students.length} hint="en la base de datos" />
+                <StatCard
+                    icon="userCheck"
+                    tone="cyan"
+                    label="Activos"
+                    value={activeCount}
+                    hint={`${students.length - activeCount} inactivos`}
+                    trend={{ dir: "flat", text: `${pct(activeCount)} %` }}
+                />
+                <StatCard icon="star" tone="blue" label="Precursores" value={pioneerCount} hint="regulares y auxiliares indefinidos" />
+                <StatCard icon="award" tone="teal" label="Ancianos y siervos" value={eldersCount} hint="con privilegio asignado" />
+            </StatGrid>
 
-                    {/* Controles de Paginación */}
-                    <div className="pagination-controls" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', flexWrap: 'wrap', gap: '1rem', padding: '0 8px' }}>
-                        <div>
-                            <label style={{ color: 'var(--text-secondary)', marginRight: '8px', fontSize: '14px' }}>Mostrar:</label>
+            <section className="adm-card">
+                <div className="adm-toolbar">
+                    <label className="adm-input-pill">
+                        <Icon name="search" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Buscar estudiante..."
+                            value={searchTerm}
+                            onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                            aria-label="Buscar estudiante"
+                        />
+                    </label>
+                    <span className="adm-muted" style={{ fontSize: "13px" }}>
+                        {filteredStudents.length} {filteredStudents.length === 1 ? "resultado" : "resultados"}
+                    </span>
+                </div>
+
+                {filteredStudents.length === 0 ? (
+                    <EmptyState icon="search" title="No se encontraron estudiantes." />
+                ) : (
+                    <>
+                        <div className="table-container">
+                            <table className="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Info</th>
+                                        <th>Teléfono</th>
+                                        <th>Estado</th>
+                                        <th style={{ textAlign: "right" }}>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {currentRecords.map((student) => {
+                                        const pioneer = PIONEER_OPTIONS.find((o) => o.value && o.value === pioneerOf(student));
+                                        return (
+                                            <tr key={student.id}>
+                                                <td data-label="Nombre">
+                                                    <span className="adm-person">
+                                                        <span className="adm-avatar adm-avatar--sm" aria-hidden="true">{initialsOf(student.name)}</span>
+                                                        <span className="adm-cell-strong">{student.name}</span>
+                                                    </span>
+                                                </td>
+                                                <td data-label="Info">
+                                                    <span className="adm-tags">
+                                                        {student.es_anciano && <span title="Anciano" className="adm-tag adm-tag--deep">Anciano</span>}
+                                                        {student.es_siervo && <span title="Siervo Ministerial" className="adm-tag adm-tag--blue">Siervo</span>}
+                                                        {pioneer && (
+                                                            <span title={pioneer.label} className="adm-tag">{pioneer.tag}</span>
+                                                        )}
+                                                        {student.infoadd && <span className="adm-muted" style={{ fontSize: "12px" }}>{student.infoadd}</span>}
+                                                        {!student.es_anciano && !student.es_siervo && !pioneer && !student.infoadd && <span className="adm-muted">-</span>}
+                                                    </span>
+                                                </td>
+                                                <td data-label="Teléfono">
+                                                    {student.telefono || <span className="adm-muted">-</span>}
+                                                </td>
+                                                <td data-label="Estado">
+                                                    <span className={`adm-badge ${student.status === "Activo" ? "adm-badge--ok" : "adm-badge--bad"}`}>
+                                                        {student.status}
+                                                    </span>
+                                                </td>
+                                                <td data-label="Acciones" className="actions-cell" style={{ textAlign: "right" }}>
+                                                    <div className="adm-actions">
+                                                        <button type="button" className="adm-action" onClick={() => handleOpenModal(student)} title="Editar" aria-label={`Editar a ${student.name}`}>
+                                                            <Icon name="edit" size={17} />
+                                                        </button>
+                                                        <button type="button" className="adm-action adm-action--danger" onClick={() => handleDelete(student.id)} title="Eliminar" aria-label={`Eliminar a ${student.name}`}>
+                                                            <Icon name="trash" size={17} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <Pager page={currentPage} total={totalPages} onChange={setCurrentPage}>
+                            <label htmlFor="students-per-page">Mostrar:</label>
                             <select
+                                id="students-per-page"
+                                className="adm-input adm-input--sm"
                                 value={rowsPerPage}
                                 onChange={e => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                                style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-card)', color: 'var(--text-primary)' }}
                             >
                                 <option value={30}>30</option>
                                 <option value={50}>50</option>
                                 <option value={100}>100</option>
                                 <option value={500}>500</option>
                             </select>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            <button
-                                className="icon-btn"
-                                disabled={currentPage <= 1}
-                                onClick={() => setCurrentPage(prev => prev - 1)}
-                                style={{ padding: '6px 12px', opacity: currentPage <= 1 ? 0.5 : 1, cursor: currentPage <= 1 ? 'not-allowed' : 'pointer', fontSize: '14px' }}
-                            >
-                                Anterior
-                            </button>
-                            <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-                                Página {currentPage} de {totalPages || 1}
-                            </span>
-                            <button
-                                className="icon-btn"
-                                disabled={currentPage >= totalPages || totalPages === 0}
-                                onClick={() => setCurrentPage(prev => prev + 1)}
-                                style={{ padding: '6px 12px', opacity: currentPage >= totalPages || totalPages === 0 ? 0.5 : 1, cursor: currentPage >= totalPages || totalPages === 0 ? 'not-allowed' : 'pointer', fontSize: '14px' }}
-                            >
-                                Siguiente
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+                        </Pager>
+                    </>
+                )}
+            </section>
 
             {/* Modal para Crear / Editar */}
             {showModal && (
-                <div className="modal-overlay" onClick={handleCloseModal} style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', zIndex: 1000,
-                    display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px'
-                }}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{
-                        backgroundColor: '#121212', padding: '24px', borderRadius: '12px',
-                        width: '100%', maxWidth: '500px', boxShadow: '0 12px 40px rgba(0,0,0,0.4)', border: '1px solid #333'
-                    }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                            <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>{editingId ? "Editar Estudiante" : "Nuevo Estudiante"}</h3>
-                            <button className="icon-btn danger" onClick={handleCloseModal}>✕</button>
+                <Modal
+                    title={editingId ? "Editar Estudiante" : "Nuevo Estudiante"}
+                    icon={editingId ? "edit" : "user"}
+                    onClose={handleCloseModal}
+                    size="lg"
+                >
+                    <form onSubmit={handleSave} className="prog-form">
+                        <div className="form-group">
+                            <label htmlFor="st-name">Nombre Completo</label>
+                            <input id="st-name" required type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="Ej. Juan Pérez" />
                         </div>
-                        <form onSubmit={handleSave} className="prog-form">
+
+                        <div className="form-row form-row--2" style={{ marginTop: '16px' }}>
                             <div className="form-group">
-                                <label>Nombre Completo</label>
-                                <input required type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="Ej. Juan Pérez" />
-                            </div>
-
-                            <div className="form-row form-row--2" style={{ marginTop: '16px' }}>
-                                <div className="form-group">
-                                    <label>Género (Sexo)</label>
-                                    <select required value={formData.gender} onChange={e => setFormData({ ...formData, gender: e.target.value })}>
-                                        <option value="" disabled>Seleccionar...</option>
-                                        <option value="1">Hombre</option>
-                                        <option value="0">Mujer</option>
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label>Estado</label>
-                                    <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })}>
-                                        <option value="Activo">Activo</option>
-                                        <option value="Inactivo">Inactivo</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="form-row form-row--2" style={{ marginTop: '16px' }}>
-                                <div className="form-group">
-                                    <label>Teléfono (Opcional)</label>
-                                    <input type="text" value={formData.telefono} onChange={e => setFormData({ ...formData, telefono: e.target.value })} placeholder="+1 234 567" />
-                                </div>
-                                <div className="form-group">
-                                    <label>Nota / Info. Adicional</label>
-                                    <input type="text" value={formData.infoadd} onChange={e => setFormData({ ...formData, infoadd: e.target.value })} placeholder="Ej: Pionero, Visitante..." />
-                                </div>
-                            </div>
-
-                            <div className="form-group" style={{ marginTop: '16px' }}>
-                                <label>Precursorado</label>
-                                <select
-                                    value={pioneerOf(formData)}
-                                    onChange={e => setFormData({ ...formData, ...pioneerFlags(e.target.value) })}
-                                >
-                                    {PIONEER_OPTIONS.map(o => (
-                                        <option key={o.value} value={o.value}>{o.label}</option>
-                                    ))}
+                                <label htmlFor="st-gender">Género (Sexo)</label>
+                                <select id="st-gender" required value={formData.gender} onChange={e => setFormData({ ...formData, gender: e.target.value })}>
+                                    <option value="" disabled>Seleccionar...</option>
+                                    <option value="1">Hombre</option>
+                                    <option value="0">Mujer</option>
                                 </select>
-                                <small style={{ display: 'block', marginTop: '6px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                                    El auxiliar en campaña se asigna por mes en 📝 Informes de predicación.
-                                </small>
                             </div>
+                            <div className="form-group">
+                                <label htmlFor="st-status">Estado</label>
+                                <select id="st-status" value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })}>
+                                    <option value="Activo">Activo</option>
+                                    <option value="Inactivo">Inactivo</option>
+                                </select>
+                            </div>
+                        </div>
 
-                            {formData.gender === "1" && (
-                                <div style={{ marginTop: '20px', padding: '16px', backgroundColor: '#1a1a1a', borderRadius: '8px', border: '1px solid #333' }}>
-                                    <label style={{ fontSize: '14px', marginBottom: '12px', display: 'block', color: 'var(--accent-color)' }}>Privilegios / Asignaciones</label>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                                        {[
-                                            { key: 'aseo', label: 'Aseo' },
-                                            { key: 'acomodador', label: 'Acomodador' },
-                                            { key: 'microfonos', label: 'Micrófonos' },
-                                            { key: 'es_anciano', label: 'Anciano' },
-                                            { key: 'es_siervo', label: 'Siervo Min.' },
-                                        ].map(({ key, label }) => (
-                                            <button
-                                                key={key}
-                                                type="button"
-                                                onClick={() => setFormData({ ...formData, [key]: !formData[key] })}
-                                                style={{
-                                                    padding: '8px', borderRadius: '6px', border: '1px solid #444',
-                                                    background: formData[key] ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
-                                                    color: formData[key] ? '#60a5fa' : '#888',
-                                                    fontSize: '12px', cursor: 'pointer'
-                                                }}
-                                            >
-                                                {label} {formData[key] ? '✅' : '❌'}
-                                            </button>
-                                        ))}
-                                    </div>
+                        <div className="form-row form-row--2">
+                            <div className="form-group">
+                                <label htmlFor="st-phone">Teléfono (Opcional)</label>
+                                <input id="st-phone" type="text" value={formData.telefono} onChange={e => setFormData({ ...formData, telefono: e.target.value })} placeholder="+1 234 567" />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="st-info">Nota / Info. Adicional</label>
+                                <input id="st-info" type="text" value={formData.infoadd} onChange={e => setFormData({ ...formData, infoadd: e.target.value })} placeholder="Ej: Pionero, Visitante..." />
+                            </div>
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="st-pioneer">Precursorado</label>
+                            <select
+                                id="st-pioneer"
+                                value={pioneerOf(formData)}
+                                onChange={e => setFormData({ ...formData, ...pioneerFlags(e.target.value) })}
+                            >
+                                {PIONEER_OPTIONS.map(o => (
+                                    <option key={o.value} value={o.value}>{o.label}</option>
+                                ))}
+                            </select>
+                            <small className="adm-help">
+                                El auxiliar en campaña se asigna por mes en Informes de predicación.
+                            </small>
+                        </div>
+
+                        {formData.gender === "1" && (
+                            <div className="adm-subcard">
+                                <span className="adm-subcard-title">Privilegios / Asignaciones</span>
+                                <div className="adm-toggle-grid">
+                                    {[
+                                        { key: 'aseo', label: 'Aseo' },
+                                        { key: 'acomodador', label: 'Acomodador' },
+                                        { key: 'microfonos', label: 'Micrófonos' },
+                                        { key: 'es_anciano', label: 'Anciano' },
+                                        { key: 'es_siervo', label: 'Siervo Min.' },
+                                    ].map(({ key, label }) => (
+                                        <button
+                                            key={key}
+                                            type="button"
+                                            className={`adm-toggle ${formData[key] ? "is-on" : ""}`}
+                                            aria-pressed={!!formData[key]}
+                                            onClick={() => setFormData({ ...formData, [key]: !formData[key] })}
+                                        >
+                                            {label}
+                                            <span className="adm-toggle-dot" aria-hidden="true" />
+                                        </button>
+                                    ))}
                                 </div>
-                            )}
-
-                            <div className="form-actions" style={{ marginTop: '24px' }}>
-                                <button type="button" className="discard-btn" onClick={handleCloseModal}>Cancelar</button>
-                                <button type="submit" className="submit-btn" disabled={saving}>{saving ? "Guardando..." : "Guardar Registro"}</button>
                             </div>
-                        </form>
-                    </div>
-                </div>
+                        )}
+
+                        <div className="adm-modal-foot" style={{ padding: "22px 0 0" }}>
+                            <button type="button" className="adm-btn adm-btn--ghost" onClick={handleCloseModal}>Cancelar</button>
+                            <button type="submit" className="adm-btn adm-btn--primary" disabled={saving}>{saving ? "Guardando..." : "Guardar Registro"}</button>
+                        </div>
+                    </form>
+                </Modal>
             )}
         </div>
     );

@@ -1,5 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import Icon from "./AdminIcons";
+import { EmptyState, ErrorNote, Loading, PageHeader, Pager, PersonCell } from "./AdminWidgets";
 
 const API = import.meta.env.VITE_API_URL || "";
 
@@ -48,67 +50,59 @@ export default function AssignmentManager({ type, title, icon }) {
     const totalPages = Math.ceil(groupedHistory.length / itemsPerPage);
     const current = groupedHistory.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+    const firstCol = type === "micro" ? "Asignado 1" : "Puerta";
+    const secondCol = type === "micro" ? "Asignado 2" : "Sala Principal";
+
     return (
         <div className="tab-content fade-in">
-            <h2 style={{ marginBottom: "4px" }}>{icon} {title}</h2>
-            <p style={{ color: "var(--text-secondary)", marginBottom: "24px", fontSize: "14px" }}>
-                Historial de asignaciones. Para generar nuevas semanas usa la pestaña <strong>📅 Programación</strong>.
-            </p>
+            <PageHeader
+                icon={icon}
+                title={title}
+                count={groupedHistory.length}
+                subtitle={<>Historial de asignaciones. Para generar nuevas semanas usa la sección <strong>Programación</strong>.</>}
+            />
 
-            {error && <div className="error" style={{ marginBottom: "20px" }}>{error}</div>}
+            {error && <ErrorNote>{error}</ErrorNote>}
 
-            <div className="card" style={{ padding: "0", background: "var(--bg-secondary)", borderRadius: "8px", border: "1px solid var(--border-color)", overflow: "hidden" }}>
-                <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-color)" }}>
-                    <h3 style={{ margin: 0, color: "var(--text-primary)" }}>📖 Registros</h3>
+            <section className="adm-card">
+                <div className="adm-card-head adm-card-head--line">
+                    <h3 className="adm-card-title"><Icon name="history" size={18} /> Registros</h3>
                 </div>
 
-                {loading && <div style={{ padding: "20px", textAlign: "center" }}>Cargando...</div>}
+                {loading && <Loading>Cargando...</Loading>}
 
                 {!loading && groupedHistory.length === 0 && (
-                    <div style={{ padding: "30px", textAlign: "center", color: "var(--text-secondary)" }}>
-                        No hay registros. Genera semanas desde la pestaña 📅 Programación.
-                    </div>
+                    <EmptyState icon="calendar" title="No hay registros.">
+                        Genera semanas desde la sección Programación.
+                    </EmptyState>
                 )}
 
                 {!loading && groupedHistory.length > 0 && (
-                    <div className="table-responsive">
-                        <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
-                            <thead>
-                                <tr style={{ background: "var(--bg-tertiary)" }}>
-                                    <th style={{ padding: "12px 20px", color: "var(--text-secondary)", fontWeight: 600, borderBottom: "1px solid var(--border-color)" }}>Fecha</th>
-                                    <th style={{ padding: "12px 20px", color: "var(--text-secondary)", fontWeight: 600, borderBottom: "1px solid var(--border-color)" }}>{type === "micro" ? "Asignado 1" : "Puerta"}</th>
-                                    <th style={{ padding: "12px 20px", color: "var(--text-secondary)", fontWeight: 600, borderBottom: "1px solid var(--border-color)" }}>{type === "micro" ? "Asignado 2" : "Sala Principal"}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {current.map((h, i) => (
-                                    <tr key={h.date}
-                                        style={{ borderBottom: i < current.length - 1 ? "1px solid var(--border-color)" : "none" }}
-                                        onMouseOver={e => e.currentTarget.style.background = "var(--bg-tertiary)"}
-                                        onMouseOut={e => e.currentTarget.style.background = "transparent"}
-                                    >
-                                        <td style={{ padding: "14px 20px", fontWeight: "bold", color: "var(--text-primary)" }}>{formatDate(h.date)}</td>
-                                        <td style={{ padding: "14px 20px", color: "var(--accent-color)" }}>{h.students[0] || "-"}</td>
-                                        <td style={{ padding: "14px 20px", color: "#60a5fa" }}>{h.students[1] || "-"}</td>
+                    <>
+                        <div className="adm-table-wrap">
+                            <table className="adm-table adm-table--cards">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>{firstCol}</th>
+                                        <th>{secondCol}</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 20px", borderTop: "1px solid var(--border-color)", background: "var(--bg-tertiary)" }}>
-                            <button className="icon-btn" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}
-                                style={{ padding: "6px 12px", opacity: currentPage === 1 ? 0.5 : 1, cursor: currentPage === 1 ? "not-allowed" : "pointer", fontSize: "14px", border: "1px solid var(--border-color)", borderRadius: "4px", background: "var(--bg-primary)", color: "var(--text-primary)" }}>
-                                Anterior
-                            </button>
-                            <span style={{ color: "var(--text-secondary)", fontSize: "14px" }}>Página {currentPage} de {totalPages || 1}</span>
-                            <button className="icon-btn" disabled={currentPage >= totalPages} onClick={() => setCurrentPage(p => p + 1)}
-                                style={{ padding: "6px 12px", opacity: currentPage >= totalPages ? 0.5 : 1, cursor: currentPage >= totalPages ? "not-allowed" : "pointer", fontSize: "14px", border: "1px solid var(--border-color)", borderRadius: "4px", background: "var(--bg-primary)", color: "var(--text-primary)" }}>
-                                Siguiente
-                            </button>
+                                </thead>
+                                <tbody>
+                                    {current.map((h) => (
+                                        <tr key={h.date}>
+                                            <td data-label="Fecha"><span className="adm-cell-strong">{formatDate(h.date)}</span></td>
+                                            <td data-label={firstCol}><PersonCell name={h.students[0]} /></td>
+                                            <td data-label={secondCol}><PersonCell name={h.students[1]} /></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
-                    </div>
+                        <Pager page={currentPage} total={totalPages} onChange={setCurrentPage} />
+                    </>
                 )}
-            </div>
+            </section>
         </div>
     );
 }

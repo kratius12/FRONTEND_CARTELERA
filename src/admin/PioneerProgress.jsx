@@ -7,6 +7,8 @@ import { AuthContext } from "../context/AuthContext";
 import { MonthPicker } from "./PreachingReportsParts";
 import { MONTHS, currentServiceYear, groupTitle, monthLabel } from "./preachingReportsUtils";
 import { CATEGORIES, GOALS, currentCounts, evaluateCategory } from "./pioneerGoals";
+import Icon from "./AdminIcons";
+import { Loading } from "./AdminWidgets";
 import "./PreachingReports.css";
 import "./PioneerProgress.css";
 
@@ -69,7 +71,7 @@ export default function PioneerProgress({ category, month, onMonthChange }) {
         <div className="pr-page pp-page fade-in">
             <div className="pr-header">
                 <div>
-                    <Link to={`/informes?mes=${month}`} className="pp-back">← Planilla de informes</Link>
+                    <Link to={`/informes?mes=${month}`} className="pp-back"><Icon name="chevronLeft" size={16} /> Planilla de informes</Link>
                     <h2 className="pr-title">{category.title}</h2>
                     <p className="pr-subtitle">
                         Año de servicio {data?.service_year ?? currentServiceYear()}, calculado hasta <strong>{monthLabel(month)}</strong>.
@@ -98,7 +100,7 @@ export default function PioneerProgress({ category, month, onMonthChange }) {
                 {goalText} Se suman las horas de predicación y las de servicio sagrado.
             </p>
 
-            {loading && <div className="admin-status">Cargando seguimiento…</div>}
+            {loading && <Loading>Cargando seguimiento…</Loading>}
             {!loading && result.error && <div className="admin-status error">{result.error}</div>}
 
             {summary && (

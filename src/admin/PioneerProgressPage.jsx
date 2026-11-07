@@ -1,17 +1,14 @@
 // src/admin/PioneerProgressPage.jsx
 // Página del seguimiento de precursores: /informes/precursores/:tipo?mes=YYYY-MM
 // tipo: regulares | indefinidos | campana
-import { useContext } from "react";
-import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import PioneerProgress from "./PioneerProgress";
-import ThemeToggle from "../components/ThemeToggle";
-import { AuthContext } from "../context/AuthContext";
+import AdminLayout from "./AdminLayout";
 import { categoryBySlug } from "./pioneerGoals";
 import { defaultMonth, serviceYearMonths } from "./preachingReportsUtils";
 import "./AdminPage.css";
 
 export default function PioneerProgressPage() {
-    const { logout } = useContext(AuthContext);
     const { tipo } = useParams();
     const [params] = useSearchParams();
     const navigate = useNavigate();
@@ -26,29 +23,15 @@ export default function PioneerProgressPage() {
         if (next && next !== month) navigate(`/informes/precursores/${category.slug}?mes=${next}`, { replace: true });
     };
 
-    return (
-        <div className="admin-app">
-            <header className="top-navbar pr-standalone-nav">
-                <div className="navbar-left">
-                    <Link to="/admin" className="pr-back-link" title="Volver al panel de administración">
-                        ← Panel
-                    </Link>
-                    <div className="navbar-brand">
-                        <span className="navbar-logo">📋</span>
-                        <span className="navbar-title">Admin Panel</span>
-                    </div>
-                </div>
-                <div className="navbar-right">
-                    <ThemeToggle />
-                    <button className="navbar-logout-btn" onClick={logout} title="Cerrar Sesión">
-                        🚪 <span className="logout-text">Salir</span>
-                    </button>
-                </div>
-            </header>
+    // Las opciones del menú: "Informes" vuelve a la planilla; las demás abren /admin en esa vista
+    const goTo = (key) => {
+        if (key === "reports") navigate(`/informes?mes=${month}`);
+        else navigate("/admin", { state: { tab: key } });
+    };
 
-            <main className="admin-content pr-standalone">
-                <PioneerProgress category={category} month={month} onMonthChange={changeMonth} />
-            </main>
-        </div>
+    return (
+        <AdminLayout activeKey="reports" onSelect={goTo}>
+            <PioneerProgress category={category} month={month} onMonthChange={changeMonth} />
+        </AdminLayout>
     );
 }

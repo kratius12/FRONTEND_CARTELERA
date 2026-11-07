@@ -1,5 +1,8 @@
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import Icon from "./AdminIcons";
+import { EmptyState, ErrorNote, Loading, Modal, PageHeader } from "./AdminWidgets";
+import { personFromEmail } from "./adminNav";
 
 const API = import.meta.env.VITE_API_URL || "";
 
@@ -119,94 +122,102 @@ export default function UserManagement() {
     }
   };
 
-  if (loading) return <div className="admin-status">Cargando usuarios...</div>;
-  if (error) return <div className="admin-status error">{error}</div>;
+  if (loading) return <Loading>Cargando usuarios...</Loading>;
+  if (error) return <ErrorNote>{error}</ErrorNote>;
 
   return (
     <div>
-      <div className="list-toolbar">
-        <h2 className="list-title">
-          Gestión de Usuarios
-          <span className="list-badge">{users.length}</span>
-        </h2>
-        <button className="publish-btn" onClick={() => openModal(null)}>
-          + Crear Usuario Admin
+      <PageHeader
+        icon="shieldCheck"
+        title="Gestión de Usuarios"
+        count={users.length}
+        subtitle="Personas con acceso al panel de administración."
+      >
+        <button type="button" className="adm-btn adm-btn--primary" onClick={() => openModal(null)}>
+          <Icon name="plus" size={16} /> Crear Usuario Admin
         </button>
-      </div>
+      </PageHeader>
 
-      <div className="table-container">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Correo Electrónico</th>
-              <th>Rol</th>
-              <th style={{ width: "120px", textAlign: "right" }}>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u) => (
-              <tr key={u.id}>
-                <td data-label="Correo Electrónico">{u.email}</td>
-                <td data-label="Rol"><span className="badge badge--current">{u.role}</span></td>
-                <td data-label="Acciones" className="actions-cell">
-                  <button className="icon-btn small" onClick={() => openModal(u)} title="Editar o cambiar contraseña" style={{ marginRight: "8px" }}>
-                    ✏️
-                  </button>
-                  <button className="icon-btn danger small" onClick={() => handleDelete(u)} title="Eliminar Admin">
-                    🗑️
-                  </button>
-                </td>
+      <section className="adm-card">
+        <div className="table-container">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Correo Electrónico</th>
+                <th>Rol</th>
+                <th style={{ width: "120px", textAlign: "right" }}>Acciones</th>
               </tr>
-            ))}
-            {users.length === 0 && (
-              <tr><td colSpan="3" style={{ textAlign: "center", padding: "20px" }}>No hay usuarios.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* MODAL SIMULADO SIN DEPENDENCIAS EXTERNAS */}
-      {showModal && (
-        <div style={{
-          position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
-          backgroundColor: "rgba(0,0,0,0.6)", zIndex: 999, display: "flex",
-          placeItems: "center", justifyContent: "center"
-        }}>
-          <div style={{
-            background: "var(--bg-primary)", padding: "24px", borderRadius: "12px",
-            width: "100%", maxWidth: "400px", border: "1px solid var(--border-color)"
-          }}>
-            <h3 style={{ margin: "0 0 16px", color: "var(--text-primary)" }}>
-                {editingUser ? "Editar Usuario" : "Nuevo Usuario Admin"}
-            </h3>
-            {formError && <div style={{ color: "#ef4444", marginBottom: "16px", fontSize: "13px" }}>{formError}</div>}
-            
-            <form onSubmit={handleSubmit} className="form-group" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div>
-                <label style={{ display: "block", marginBottom: "6px" }}>Correo Electrónico</label>
-                <input 
-                  type="email" required 
-                  value={email} onChange={(e) => setEmail(e.target.value)}
-                  style={{ width: "100%", padding: "8px", boxSizing: "border-box", borderRadius: "8px", border: "1px solid var(--border-color)", background: "var(--bg-secondary)", color: "var(--text-primary)" }}
-                />
-              </div>
-              <div>
-                <label style={{ display: "block", marginBottom: "6px" }}>Contraseña {editingUser && <span className="muted">(Opcional: Dejar en blanco para mantener actual)</span>}</label>
-                <input 
-                  type="password" 
-                  value={password} onChange={(e) => setPassword(e.target.value)}
-                  style={{ width: "100%", padding: "8px", boxSizing: "border-box", borderRadius: "8px", border: "1px solid var(--border-color)", background: "var(--bg-secondary)", color: "var(--text-primary)" }}
-                />
-              </div>
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "8px" }}>
-                <button type="button" onClick={closeModal} className="icon-btn">Cancelar</button>
-                <button type="submit" disabled={isSubmitting} className="publish-btn" style={{ background: "var(--accent-color)", color: "#fff", borderColor: "var(--accent-color)" }}>
-                  {isSubmitting ? "Guardando..." : "Guardar"}
-                </button>
-              </div>
-            </form>
-          </div>
+            </thead>
+            <tbody>
+              {users.map((u) => {
+                const person = personFromEmail(u.email);
+                return (
+                  <tr key={u.id}>
+                    <td data-label="Correo Electrónico">
+                      <span className="adm-person">
+                        <span className="adm-avatar adm-avatar--sm" aria-hidden="true">{person.initials}</span>
+                        <span className="adm-person-text">
+                          <span className="adm-cell-strong">{person.name}</span>
+                          <span className="adm-cell-sub">{u.email}</span>
+                        </span>
+                      </span>
+                    </td>
+                    <td data-label="Rol"><span className="adm-badge">{u.role}</span></td>
+                    <td data-label="Acciones" className="actions-cell" style={{ textAlign: "right" }}>
+                      <div className="adm-actions">
+                        <button type="button" className="adm-action" onClick={() => openModal(u)} title="Editar o cambiar contraseña" aria-label="Editar o cambiar contraseña">
+                          <Icon name="edit" size={17} />
+                        </button>
+                        <button type="button" className="adm-action adm-action--danger" onClick={() => handleDelete(u)} title="Eliminar Admin" aria-label="Eliminar Admin">
+                          <Icon name="trash" size={17} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {users.length === 0 && <EmptyState icon="users" title="No hay usuarios." />}
         </div>
+      </section>
+
+      {showModal && (
+        <Modal
+          title={editingUser ? "Editar Usuario" : "Nuevo Usuario Admin"}
+          icon={editingUser ? "edit" : "user"}
+          onClose={closeModal}
+          dismissOnBackdrop={false}
+          size="sm"
+        >
+          {formError && <div className="adm-form-error" role="alert"><Icon name="alert" size={16} />{formError}</div>}
+
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <label className="adm-field">
+              <span className="adm-label">Correo Electrónico</span>
+              <input
+                className="adm-input"
+                type="email" required
+                value={email} onChange={(e) => setEmail(e.target.value)}
+              />
+            </label>
+            <label className="adm-field">
+              <span className="adm-label">Contraseña</span>
+              <input
+                className="adm-input"
+                type="password"
+                value={password} onChange={(e) => setPassword(e.target.value)}
+              />
+              {editingUser && <span className="adm-help">Opcional: déjala en blanco para mantener la actual.</span>}
+            </label>
+            <div className="adm-modal-foot" style={{ padding: "6px 0 0" }}>
+              <button type="button" onClick={closeModal} className="adm-btn adm-btn--ghost">Cancelar</button>
+              <button type="submit" disabled={isSubmitting} className="adm-btn adm-btn--primary">
+                {isSubmitting ? "Guardando..." : "Guardar"}
+              </button>
+            </div>
+          </form>
+        </Modal>
       )}
     </div>
   );

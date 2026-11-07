@@ -2,6 +2,8 @@
 // Tabla de todos los programas PUBLICADOS, con resaltado de los actuales y filtro por mes.
 import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import Icon from "./AdminIcons";
+import { ConfirmDialog, EmptyState, ErrorNote, Loading, PageHeader, Segmented, StatCard, StatGrid } from "./AdminWidgets";
 
 const API = import.meta.env.VITE_API_URL || "";
 
@@ -100,128 +102,142 @@ export default function ProgramList({ onEdit }) {
 
     const oldCount = programs.filter((p) => isOlderThanOneMonth(p.week_end)).length;
 
-    if (loading) return <div className="admin-status">Cargando programas…</div>;
-    if (error) return <div className="admin-status error">{error}</div>;
+    if (loading) return <Loading>Cargando programas…</Loading>;
+    if (error) return <ErrorNote>{error}</ErrorNote>;
+
+    const currentProgram = programs.find((p) => isCurrentWeek(p.week_start, p.week_end));
+    const upcomingCount = programs.filter((p) => !isCurrentWeek(p.week_start, p.week_end) && new Date(`${toDateOnly(p.week_start)}T00:00:00`) > new Date()).length;
+    const today = new Date().toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
 
     return (
         <div>
             {confirmDeleteModal && (
-                <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", zIndex: 9999, background: "rgba(0,0,0,0.6)", display: "flex", justifyContent: "center", alignItems: "center" }}>
-                    <div style={{ background: "var(--bg-primary)", padding: "24px", borderRadius: "12px", boxShadow: "0 10px 25px rgba(0,0,0,0.2)", maxWidth: "400px", width: "90%", color: "var(--text-primary)", textAlign: "center" }}>
-                        <h3 style={{ marginTop: 0, marginBottom: "16px", color: "#ef4444" }}>⚠️ Eliminar Programa</h3>
-                        <p style={{ marginBottom: "24px" }}>
-                            ¿Estás seguro de que deseas eliminar permanentemente el programa publicado <strong>"{confirmDeleteModal.title || formatDate(confirmDeleteModal.week_start)}"</strong>? Esta acción no se puede deshacer.
-                        </p>
-                        <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
-                            <button 
-                                onClick={() => setConfirmDeleteModal(null)}
-                                style={{ padding: "8px 16px", borderRadius: "6px", border: "1px solid var(--border-color)", background: "transparent", color: "var(--text-primary)", cursor: "pointer", fontWeight: "bold" }}
-                            >
-                                Cancelar
-                            </button>
-                            <button 
-                                onClick={executeDelete}
-                                style={{ padding: "8px 16px", borderRadius: "6px", border: "none", background: "#ef4444", color: "white", cursor: "pointer", fontWeight: "bold" }}
-                            >
-                                🗑️ Sí, Eliminar
-                            </button>
-                        </div>
+                <ConfirmDialog
+                    title="Eliminar Programa"
+                    onConfirm={executeDelete}
+                    onCancel={() => setConfirmDeleteModal(null)}
+                >
+                    <p>
+                        ¿Estás seguro de que deseas eliminar permanentemente el programa publicado <strong>"{confirmDeleteModal.title || formatDate(confirmDeleteModal.week_start)}"</strong>? Esta acción no se puede deshacer.
+                    </p>
+                </ConfirmDialog>
+            )}
+
+            <PageHeader
+                icon="book"
+                title="Programas publicados"
+                count={programs.length}
+                subtitle={`Hoy es ${today} · la cartelera pública muestra estos programas.`}
+            />
+
+            <StatGrid label="Resumen de programas">
+                <StatCard icon="book" tone="teal" label="Publicados" value={programs.length} hint="en la cartelera" />
+                <StatCard
+                    icon="calendar"
+                    tone="cyan"
+                    label="Semana actual"
+                    value={currentProgram ? formatDate(currentProgram.week_start) : "Sin programa"}
+                    textValue
+                    hint={currentProgram ? `al ${formatDate(currentProgram.week_end)}` : "no hay programa para esta semana"}
+                    trend={currentProgram ? { dir: "flat", text: "Actual" } : undefined}
+                />
+                <StatCard icon="clock" tone="blue" label="Próximos" value={upcomingCount} hint="semanas ya preparadas" />
+                <StatCard icon="history" tone="teal" label="Anteriores" value={oldCount} hint="de hace más de un mes" />
+            </StatGrid>
+
+            <section className="adm-card">
+                <div className="adm-card-head adm-card-head--line">
+                    <div>
+                        <h3 className="adm-card-title">Listado de programas</h3>
+                        <p className="adm-card-sub">El programa de la semana actual aparece resaltado.</p>
                     </div>
+                    <Segmented
+                        label="Filtrar programas"
+                        value={filter}
+                        onChange={setFilter}
+                        options={[
+                            { key: "all", label: "Todos", count: programs.length },
+                            { key: "recent", label: "Recientes", count: programs.length - oldCount },
+                            { key: "old", label: "Anteriores", count: oldCount },
+                        ]}
+                    />
                 </div>
-            )}
 
-            <div className="list-toolbar">
-                <h2 className="list-title">
-                    Programas publicados
-                    <span className="list-badge">{programs.length}</span>
-                </h2>
-                <div className="filter-group">
-                    <button
-                        className={`filter-btn ${filter === "all" ? "active" : ""}`}
-                        onClick={() => setFilter("all")}
-                    >
-                        Todos
-                    </button>
-                    <button
-                        className={`filter-btn ${filter === "recent" ? "active" : ""}`}
-                        onClick={() => setFilter("recent")}
-                    >
-                        Recientes
-                    </button>
-                    <button
-                        className={`filter-btn ${filter === "old" ? "active" : ""}`}
-                        onClick={() => setFilter("old")}
-                    >
-                        Anteriores ({oldCount})
-                    </button>
-                </div>
-            </div>
-
-            {filtered.length === 0 ? (
-                <div className="admin-status">No hay programas para mostrar.</div>
-            ) : (
-                <div className="table-container">
-                    <table className="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Título</th>
-                                <th>Período</th>
-                                <th>Estado</th>
-                                <th style={{ textAlign: "right" }}>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filtered.map((p) => {
-                                const old = isOlderThanOneMonth(p.week_end);
-                                const current = isCurrentWeek(p.week_start, p.week_end);
-                                return (
-                                    <tr key={p.id} className={current ? "row-current" : old ? "row-old" : ""}>
-                                        <td data-label="Título"><strong>{p.title || "Sin título"}</strong></td>
-                                        <td data-label="Período">
-                                            <div style={{ fontSize: "13px" }}>{formatDate(p.week_start)}</div>
-                                            <div style={{ fontSize: "11px", opacity: 0.6 }}>al {formatDate(p.week_end)}</div>
-                                        </td>
-                                        <td data-label="Estado">
-                                            {current ? (
-                                                <span className="badge" style={{ background: "#dcfce7", color: "#166534" }}>Actual</span>
-                                            ) : old ? (
-                                                <span className="badge" style={{ background: "#f3f4f6", color: "#4b5563" }}>Antiguo</span>
-                                            ) : (
-                                                <span className="badge" style={{ background: "#dbeafe", color: "#1e40af" }}>Próximo</span>
-                                            )}
-                                        </td>
-                                        <td data-label="Acciones" className="actions-cell" style={{ textAlign: "right" }}>
-                                            <div style={{ display: "flex", gap: "6px", justifyContent: "flex-end" }}>
-                                                <button
-                                                    className="icon-btn"
-                                                    onClick={() => window.open(`${window.location.origin}/programs/${p.id}`, "_blank")}
-                                                    title="Ver cartelera pública"
-                                                >
-                                                    👁️
-                                                </button>
-                                                <button
-                                                    className="icon-btn"
-                                                    onClick={() => onEdit?.(p)}
-                                                    title="Editar programa"
-                                                >
-                                                    ✏️
-                                                </button>
-                                                <button
-                                                    className="icon-btn danger"
-                                                    onClick={() => handleDelete(p)}
-                                                    title="Eliminar de la lista"
-                                                >
-                                                    🗑️
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+                {filtered.length === 0 ? (
+                    <EmptyState icon="book" title="No hay programas para mostrar." />
+                ) : (
+                    <div className="table-container">
+                        <table className="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Título</th>
+                                    <th>Período</th>
+                                    <th>Estado</th>
+                                    <th style={{ textAlign: "right" }}>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filtered.map((p) => {
+                                    const old = isOlderThanOneMonth(p.week_end);
+                                    const current = isCurrentWeek(p.week_start, p.week_end);
+                                    return (
+                                        <tr key={p.id} className={current ? "row-current" : old ? "row-old" : ""}>
+                                            <td data-label="Título">
+                                                <span className="adm-cell-strong">{p.title || "Sin título"}</span>
+                                                <span className="adm-cell-sub">Programa #{p.id}</span>
+                                            </td>
+                                            <td data-label="Período">
+                                                <span className="adm-cell-strong">{formatDate(p.week_start)}</span>
+                                                <span className="adm-cell-sub">al {formatDate(p.week_end)}</span>
+                                            </td>
+                                            <td data-label="Estado">
+                                                {current ? (
+                                                    <span className="adm-badge adm-badge--ok">Actual</span>
+                                                ) : old ? (
+                                                    <span className="adm-badge adm-badge--muted">Antiguo</span>
+                                                ) : (
+                                                    <span className="adm-badge">Próximo</span>
+                                                )}
+                                            </td>
+                                            <td data-label="Acciones" className="actions-cell" style={{ textAlign: "right" }}>
+                                                <div className="adm-actions">
+                                                    <button
+                                                        type="button"
+                                                        className="adm-action"
+                                                        onClick={() => window.open(`${window.location.origin}/programs/${p.id}`, "_blank")}
+                                                        title="Ver cartelera pública"
+                                                        aria-label="Ver cartelera pública"
+                                                    >
+                                                        <Icon name="eye" size={17} />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="adm-action"
+                                                        onClick={() => onEdit?.(p)}
+                                                        title="Editar programa"
+                                                        aria-label="Editar programa"
+                                                    >
+                                                        <Icon name="edit" size={17} />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="adm-action adm-action--danger"
+                                                        onClick={() => handleDelete(p)}
+                                                        title="Eliminar de la lista"
+                                                        aria-label="Eliminar de la lista"
+                                                    >
+                                                        <Icon name="trash" size={17} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </section>
         </div>
     );
 }

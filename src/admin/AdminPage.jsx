@@ -10,24 +10,36 @@ import AssignmentManager from "./AssignmentManager";
 import GroupBoard from "./GroupBoard";
 import ScheduleGenerator from "./ScheduleGenerator";
 import PreachingReports from "./PreachingReports";
-import ThemeToggle from "../components/ThemeToggle";
+import { useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import AdminLayout from "./AdminLayout";
+import { Loading } from "./AdminWidgets";
+import { TAB_KEYS } from "./adminNav";
 import "./AdminPage.css";
 
 const API = import.meta.env.VITE_API_URL || "";
 
 export default function AdminPage() {
     const { logout, token } = useContext(AuthContext);
-    // 'published' | 'staging' | 'new' | 'edit'
-    const [tab, setTab] = useState("published");
+    const location = useLocation();
+    // 'published' | 'staging' | 'new' | 'edit' | … (las demás opciones del menú).
+    // Desde /informes el menú vuelve aquí con la vista elegida en location.state.tab.
+    const [tab, setTab] = useState(() => (TAB_KEYS.includes(location.state?.tab) ? location.state.tab : "published"));
     const [refreshKey, setRefreshKey] = useState(0);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    // Solo para el aviso de "temporales sin publicar" de la barra superior (no recarga la vista)
+    const [noticeKey, setNoticeKey] = useState(0);
 
     // { id, week_start, week_end, payload, source: 'staging'|'published' }
     const [editingProgram, setEditingProgram] = useState(null);
     const [loadingEdit, setLoadingEdit] = useState(false);
 
     const refresh = () => setRefreshKey((k) => k + 1);
+
+    // Mismo comportamiento que tenían las pestañas: "Nuevo" y "Usuarios"/"Estudiantes" cierran la edición
+    const selectTab = (key) => {
+        if (["new", "users", "students"].includes(key)) setEditingProgram(null);
+        setTab(key);
+    };
 
     // Carga el payload completo del programa y abre el formulario de edición
     const handleEdit = async (program, source) => {
@@ -83,172 +95,14 @@ export default function AdminPage() {
     };
 
     return (
-        <div className={`admin-app ${isSidebarOpen ? "sidebar-open" : "sidebar-collapsed"}`}>
-            
-            {/* Global Top Navbar */}
-            <header className="top-navbar">
-                <div className="navbar-left">
-                    <button 
-                        className="navbar-menu-btn"
-                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                        title={isSidebarOpen ? "Cerrar menú" : "Abrir menú"}
-                    >
-                        {isSidebarOpen ? "✕" : "☰"}
-                    </button>
-                    <div className="navbar-brand">
-                        <span className="navbar-logo">📋</span>
-                        <span className="navbar-title">Admin Panel</span>
-                    </div>
-                </div>
-                
-                <div className="navbar-right">
-                    <ThemeToggle />
-                    <button 
-                        className="navbar-logout-btn" 
-                        onClick={logout}
-                        title="Cerrar Sesión"
-                    >
-                        🚪 <span className="logout-text">Salir</span>
-                    </button>
-                </div>
-            </header>
-
-            {/* Backdrop Overlay for Mobile Drawer */}
-            {isSidebarOpen && (
-                <div 
-                    className="sidebar-overlay" 
-                    onClick={() => setIsSidebarOpen(false)}
-                    title="Cerrar menú"
-                ></div>
-            )}
-
-            <div className="admin-body">
-                <aside className={`admin-sidebar ${!isSidebarOpen ? "collapsed" : ""}`}>
-                    <nav className="admin-sidebar__nav">
-                        <button
-                            className={`admin-tab ${tab === "published" ? "active" : ""}`}
-                            onClick={() => { setTab("published"); if (window.innerWidth <= 768) setIsSidebarOpen(false); }}
-                            title="📚 Publicados"
-                        >
-                            <span className="tab-icon">📚</span>
-                            {isSidebarOpen && <span className="tab-text">Publicados</span>}
-                        </button>
-                        <button
-                            className={`admin-tab ${tab === "staging" ? "active" : ""}`}
-                            onClick={() => { setTab("staging"); if (window.innerWidth <= 768) setIsSidebarOpen(false); }}
-                            title="⏳ Temporal"
-                        >
-                            <span className="tab-icon">⏳</span>
-                            {isSidebarOpen && <span className="tab-text">Temporal</span>}
-                        </button>
-                        <button
-                            className={`admin-tab ${tab === "new" ? "active" : ""}`}
-                            onClick={() => { setEditingProgram(null); setTab("new"); if (window.innerWidth <= 768) setIsSidebarOpen(false); }}
-                            title="➕ Nuevo Programa"
-                        >
-                            <span className="tab-icon">➕</span>
-                            {isSidebarOpen && <span className="tab-text">Nuevo Programa</span>}
-                        </button>
-                        <button
-                            className={`admin-tab ${tab === "users" ? "active" : ""}`}
-                            onClick={() => { setEditingProgram(null); setTab("users"); if (window.innerWidth <= 768) setIsSidebarOpen(false); }}
-                            title="👥 Gestión Usuarios"
-                        >
-                            <span className="tab-icon">👥</span>
-                            {isSidebarOpen && <span className="tab-text">Gestión Usuarios</span>}
-                        </button>
-                        <button
-                            className={`admin-tab ${tab === "students" ? "active" : ""}`}
-                            onClick={() => { setEditingProgram(null); setTab("students"); if (window.innerWidth <= 768) setIsSidebarOpen(false); }}
-                            title="👨‍🎓 Estudiantes"
-                        >
-                            <span className="tab-icon">👨‍🎓</span>
-                            {isSidebarOpen && <span className="tab-text">Estudiantes</span>}
-                        </button>
-                        <button
-                            className={`admin-tab ${tab === "schedule" ? "active" : ""}`}
-                            onClick={() => { setTab("schedule"); if (window.innerWidth <= 768) setIsSidebarOpen(false); }}
-                            title="📅 Programación"
-                        >
-                            <span className="tab-icon">📅</span>
-                            {isSidebarOpen && <span className="tab-text">Programación</span>}
-                        </button>
-                        <button
-                            className={`admin-tab ${tab === "cleaning" ? "active" : ""}`}
-                            onClick={() => { setTab("cleaning"); if (window.innerWidth <= 768) setIsSidebarOpen(false); }}
-                            title="🧹 Aseo"
-                        >
-                            <span className="tab-icon">🧹</span>
-                            {isSidebarOpen && <span className="tab-text">Aseo</span>}
-                        </button>
-                        <button
-                            className={`admin-tab ${tab === "micro" ? "active" : ""}`}
-                            onClick={() => { setTab("micro"); if (window.innerWidth <= 768) setIsSidebarOpen(false); }}
-                            title="🎤 Micrófonos"
-                        >
-                            <span className="tab-icon">🎤</span>
-                            {isSidebarOpen && <span className="tab-text">Micrófonos</span>}
-                        </button>
-                        <button
-                            className={`admin-tab ${tab === "attendant" ? "active" : ""}`}
-                            onClick={() => { setTab("attendant"); if (window.innerWidth <= 768) setIsSidebarOpen(false); }}
-                            title="🛡️ Acomodadores"
-                        >
-                            <span className="tab-icon">🛡️</span>
-                            {isSidebarOpen && <span className="tab-text">Acomodadores</span>}
-                        </button>
-                        <button
-                            className={`admin-tab ${tab === "groups" ? "active" : ""}`}
-                            onClick={() => { setTab("groups"); if (window.innerWidth <= 768) setIsSidebarOpen(false); }}
-                            title="🗂️ Grupos"
-                        >
-                            <span className="tab-icon">🗂️</span>
-                            {isSidebarOpen && <span className="tab-text">Grupos</span>}
-                        </button>
-                        <button
-                            className={`admin-tab ${tab === "reports" ? "active" : ""}`}
-                            onClick={() => { setTab("reports"); if (window.innerWidth <= 768) setIsSidebarOpen(false); }}
-                            title="📝 Informes de predicación"
-                        >
-                            <span className="tab-icon">📝</span>
-                            {isSidebarOpen && <span className="tab-text">Informes de predicación</span>}
-                        </button>
-
-                        <a
-                            href="/imprimir"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="admin-tab"
-                            style={{ textDecoration: 'none' }}
-                            title="🖨️ Ver Imprimible"
-                        >
-                            <span className="tab-icon">🖨️</span>
-                            {isSidebarOpen && <span className="tab-text">Ver Imprimible</span>}
-                        </a>
-                        <a
-                            href="/imprimir-grupos"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="admin-tab"
-                            style={{ textDecoration: 'none' }}
-                            title="📄 Imprimir Grupos"
-                        >
-                            <span className="tab-icon">📄</span>
-                            {isSidebarOpen && <span className="tab-text">Imprimir Grupos</span>}
-                        </a>
-
-                        {tab === "edit" && editingProgram && (
-                            <button className="admin-tab active" disabled title="✏️ Editando">
-                                <span className="tab-icon">✏️</span>
-                                {isSidebarOpen && <span className="tab-text">Editando #{editingProgram.id}</span>}
-                            </button>
-                        )}
-                    </nav>
-                </aside>
-
-                <main className="admin-content">
+        <AdminLayout
+            activeKey={tab}
+            onSelect={selectTab}
+            editingLabel={tab === "edit" && editingProgram ? `Editando #${editingProgram.id}` : null}
+            refreshKey={`${refreshKey}-${noticeKey}`}
+        >
                 {loadingEdit && (
-                    <div className="admin-status">Cargando programa para editar…</div>
+                    <Loading>Cargando programa para editar…</Loading>
                 )}
 
                 {!loadingEdit && tab === "published" && (
@@ -265,6 +119,7 @@ export default function AdminPage() {
                             setTab("published");
                         }}
                         onEdit={(p) => handleEdit(p, "staging")}
+                        onChanged={() => setNoticeKey((k) => k + 1)}
                     />
                 )}
                 {!loadingEdit && tab === "new" && (
@@ -291,10 +146,10 @@ export default function AdminPage() {
                     <CleaningManager />
                 )}
                 {!loadingEdit && tab === "micro" && (
-                    <AssignmentManager type="micro" title="Micrófonos" icon="🎤" />
+                    <AssignmentManager type="micro" title="Micrófonos" icon="mic" />
                 )}
                 {!loadingEdit && tab === "attendant" && (
-                    <AssignmentManager type="attendant" title="Acomodadores" icon="🛡️" />
+                    <AssignmentManager type="attendant" title="Acomodadores" icon="door" />
                 )}
                 {!loadingEdit && tab === "groups" && (
                     <GroupBoard />
@@ -310,8 +165,6 @@ export default function AdminPage() {
                         onSaved={handleEditSaved}
                     />
                 )}
-                </main>
-            </div>
-        </div>
+        </AdminLayout>
     );
 }

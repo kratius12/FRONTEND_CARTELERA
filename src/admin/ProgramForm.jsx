@@ -2,6 +2,7 @@
 // Formulario dinámico para crear o editar un programa en staging.
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import { Modal } from "./AdminWidgets";
 
 const API = import.meta.env.VITE_API_URL || "";
 
@@ -655,27 +656,30 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
 
             {/* ── MODAL DE ADVERTENCIAS ── */}
             {warnings.length > 0 && (
-                <div className="modal-overlay">
-                    <div className="modal-content" style={{ maxWidth: 500 }}>
-                        <h3 style={{ color: "#d9534f", marginTop: 0 }}>⚠️ Advertencias de Reglas de Negocio</h3>
-                        <p style={{ fontSize: "14px", color: "#555", marginBottom: 15 }}>
-                            Se encontraron algunas reglas que no se están cumpliendo. ¿Deseas guardar de todos modos?
-                        </p>
-                        <ul style={{ fontSize: "14px", marginBottom: 20, paddingLeft: 20, color: "#333", textAlign: "left" }}>
-                            {warnings.map((w, i) => (
-                                <li key={i} style={{ marginBottom: 8 }}>{w}</li>
-                            ))}
-                        </ul>
-                        <div className="form-actions" style={{ justifyContent: "flex-end", gap: "10px" }}>
-                            <button type="button" className="icon-btn" onClick={() => { setWarnings([]); setPendingPayload(null); }}>
+                <Modal
+                    title="Advertencias de Reglas de Negocio"
+                    icon="alert"
+                    tone="warn"
+                    onClose={() => { setWarnings([]); setPendingPayload(null); }}
+                    dismissOnBackdrop={false}
+                    footer={(
+                        <>
+                            <button type="button" className="adm-btn adm-btn--ghost" onClick={() => { setWarnings([]); setPendingPayload(null); }}>
                                 Volver a Corregir
                             </button>
-                            <button type="button" className="submit-btn" onClick={handleSubmit} disabled={saving}>
+                            <button type="button" className="adm-btn adm-btn--primary" onClick={handleSubmit} disabled={saving}>
                                 Ignorar y Guardar
                             </button>
-                        </div>
-                    </div>
-                </div>
+                        </>
+                    )}
+                >
+                    <p>Se encontraron algunas reglas que no se están cumpliendo. ¿Deseas guardar de todos modos?</p>
+                    <ul>
+                        {warnings.map((w, i) => (
+                            <li key={i}>{w}</li>
+                        ))}
+                    </ul>
+                </Modal>
             )}
         </form>
     );
