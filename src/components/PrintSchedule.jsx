@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import "./PrintSchedule.css";
+import WeekendSheet from "./WeekendSheet";
+import SoundSheet from "./SoundSheet";
+import { downloadSheetPDF, sheetDate, upcomingSaturdayISO, isSaturdayISO } from "./weekendSheetUtils";
 
 const API = import.meta.env.VITE_API_URL || "";
 
@@ -57,6 +61,14 @@ function MenuSelector({ onSelect }) {
                 <button onClick={() => onSelect("meeting")} className="menu-card">
                     <span style={{ fontSize: "36px" }}>📖</span>
                     <span className="menu-card-label">Programación de<br />Reuniones</span>
+                </button>
+                <button onClick={() => onSelect("weekend")} className="menu-card">
+                    <span style={{ fontSize: "36px" }}>🎙️</span>
+                    <span className="menu-card-label">Fin de semana<br />(Presidente y lector)</span>
+                </button>
+                <button onClick={() => onSelect("sound")} className="menu-card">
+                    <span style={{ fontSize: "36px" }}>🎧</span>
+                    <span className="menu-card-label">Sonido<br />(Audio, micrófonos y Zoom)</span>
                 </button>
                 <button onClick={() => window.location.href = "/imprimir-grupos"} className="menu-card">
                     <span style={{ fontSize: "36px" }}>👥</span>
@@ -485,13 +497,118 @@ function MeetingProgramsView({ onBack }) {
     );
 }
 
+// ─── Vistas 4 y 5: Fin de semana y Sonido (una fila por sábado) ──────────────
+
+const SHEET_WEEKS = [4, 8, 9, 13, 14, 17, 26];
+
+const SATURDAY_SHEETS = {
+    weekend: {
+        endpoint: "/api/programs/weekend",
+        Sheet: WeekendSheet,
+        elementId: "printable-area-weekend",
+        pdfName: "fin_de_semana_oriente.pdf",
+        defaultWeeks: 14,
+        countLabel: "sábados",
+        emptyText: "No hay sábados programados",
+    },
+    sound: {
+        endpoint: "/api/programs/sound",
+        Sheet: SoundSheet,
+        elementId: "printable-area-sound",
+        pdfName: "sonido_oriente.pdf",
+        defaultWeeks: 9,
+        countLabel: "semanas",
+        emptyText: "No hay semanas programadas",
+    },
+};
+
+function SaturdaySheetView({ kind, onBack, initialStart, initialWeeks }) {
+    const sheet = SATURDAY_SHEETS[kind];
+    const [start, setStart] = useState(isSaturdayISO(initialStart) ? initialStart : upcomingSaturdayISO());
+    const [weeks, setWeeks] = useState(SHEET_WEEKS.includes(initialWeeks) ? initialWeeks : sheet.defaultWeeks);
+    const [data, setData] = useState(null);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        let alive = true;
+        fetch(`${API}${sheet.endpoint}?start=${start}&weeks=${weeks}`)
+            .then((r) => (r.ok ? r.json() : Promise.reject(new Error())))
+            .then((d) => { if (alive) { setData(d); setError(""); } })
+            .catch(() => { if (alive) setError("Error al cargar datos."); });
+        return () => { alive = false; };
+    }, [sheet.endpoint, start, weeks]);
+
+    const pickStart = (value) => {
+        // Cualquier día elegido se lleva al sábado de esa semana
+        if (value) setStart(upcomingSaturdayISO(new Date(`${value}T12:00:00`)));
+    };
+
+    const Sheet = sheet.Sheet;
+    const rows = data?.rows || [];
+
+    return (
+        <div className="print-page">
+            <div className="print-controls no-print">
+                <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
+                    <button onClick={onBack} className="print-btn" style={{ background: "#6b7280" }}>← Volver</button>
+                    <button onClick={() => window.print()} className="print-btn">🖨️ Imprimir</button>
+                    <button onClick={() => downloadSheetPDF(sheet.elementId, sheet.pdfName)} className="print-btn" style={{ background: "#10b981" }}>📥 Descargar PDF</button>
+                </div>
+                <div className="weekend-filters">
+                    <label>
+                        Desde el sábado
+                        <input type="date" value={start} onChange={(e) => pickStart(e.target.value)} />
+                    </label>
+                    <label>
+                        Filas
+                        <select value={weeks} onChange={(e) => setWeeks(Number(e.target.value))}>
+                            {SHEET_WEEKS.map((n) => <option key={n} value={n}>{n}</option>)}
+                        </select>
+                    </label>
+                </div>
+                <p>
+                    {rows.length
+                        ? `${rows.length} ${sheet.countLabel}: de ${rows[0].label.toLowerCase()} a ${rows[rows.length - 1].label.toLowerCase()}.`
+                        : "Elige desde qué sábado imprimir."}
+                </p>
+            </div>
+
+            {error && <div className="no-print" style={{ textAlign: "center", padding: "40px" }}>{error}</div>}
+            {!error && !data && <div className="no-print" style={{ textAlign: "center", padding: "40px" }}>Cargando programación...</div>}
+            {!error && data && rows.length === 0 && (
+                <div className="no-print" style={{ textAlign: "center", padding: "40px" }}>
+                    {sheet.emptyText} desde el {sheetDate(start).toLowerCase()}.
+                </div>
+            )}
+            {!error && data && rows.length > 0 && (
+                <div className="printable-content">
+                    <Sheet id={sheet.elementId} rows={rows} />
+                </div>
+            )}
+        </div>
+    );
+}
+
 // ─── Componente principal ─────────────────────────────────────────────────────
 
+// ?vista=fin-de-semana o ?vista=sonido abre directamente esa hoja
+// (&desde=YYYY-MM-DD y &semanas=N, opcionales; los usa el botón del panel)
+const VIEW_PARAM = { "fin-de-semana": "weekend", sonido: "sound" };
+
 export default function PrintSchedule() {
-    const [view, setView] = useState(null);
+    const [params, setParams] = useSearchParams();
+    const [view, setView] = useState(() => VIEW_PARAM[params.get("vista")] || null);
+
+    const back = () => {
+        setView(null);
+        if (params.get("vista")) setParams({}, { replace: true });
+    };
 
     if (!view)               return <MenuSelector onSelect={setView} />;
-    if (view === "schedule") return <ScheduleView onBack={() => setView(null)} />;
-    if (view === "meeting")  return <MeetingProgramsView onBack={() => setView(null)} />;
+    if (view === "schedule") return <ScheduleView onBack={back} />;
+    if (view === "meeting")  return <MeetingProgramsView onBack={back} />;
+    if (view === "weekend" || view === "sound") {
+        return <SaturdaySheetView key={view} kind={view} onBack={back} initialStart={params.get("desde")} initialWeeks={Number(params.get("semanas"))} />;
+    }
     return null;
 }

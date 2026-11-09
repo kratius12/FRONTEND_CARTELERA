@@ -46,7 +46,12 @@ export default function StudentList() {
         es_siervo: false,
         es_precursor_aux_camp: false,
         es_precursor_aux_ind: false,
-        es_precursor_reg: false
+        es_precursor_reg: false,
+        fds_presidente: false,
+        fds_lector: false,
+        sonido_audio_video: false,
+        sonido_microfonos: false,
+        sonido_zoom: false
     });
 
     const fetchStudents = async () => {
@@ -87,6 +92,11 @@ export default function StudentList() {
                 microfonos: student.microfonos || false,
                 es_anciano: student.es_anciano || false,
                 es_siervo: student.es_siervo || false,
+                fds_presidente: student.fds_presidente || false,
+                fds_lector: student.fds_lector || false,
+                sonido_audio_video: student.sonido_audio_video || false,
+                sonido_microfonos: student.sonido_microfonos || false,
+                sonido_zoom: student.sonido_zoom || false,
                 ...pioneerFlags(pioneerOf(student))
             });
         } else {
@@ -104,7 +114,12 @@ export default function StudentList() {
                 es_siervo: false,
                 es_precursor_aux_camp: false,
                 es_precursor_aux_ind: false,
-                es_precursor_reg: false
+                es_precursor_reg: false,
+                fds_presidente: false,
+                fds_lector: false,
+                sonido_audio_video: false,
+                sonido_microfonos: false,
+                sonido_zoom: false
             });
         }
         setShowModal(true);
@@ -123,6 +138,14 @@ export default function StudentList() {
             ...formData,
             gender: formData.gender !== "" ? parseInt(formData.gender) : null
         };
+        // Fin de semana y Sonido: solo varones
+        if (payload.gender !== 1) {
+            payload.fds_presidente = false;
+            payload.fds_lector = false;
+            payload.sonido_audio_video = false;
+            payload.sonido_microfonos = false;
+            payload.sonido_zoom = false;
+        }
 
         const url = editingId ? `${API}/api/admin/students/${editingId}` : `${API}/api/admin/students`;
         const method = editingId ? "PUT" : "POST";
@@ -269,8 +292,18 @@ export default function StudentList() {
                                                         {pioneer && (
                                                             <span title={pioneer.label} className="adm-tag">{pioneer.tag}</span>
                                                         )}
+                                                        {(student.fds_presidente || student.fds_lector) && (
+                                                            <span title={`Fin de semana: ${[student.fds_presidente && "presidencia", student.fds_lector && "lectura"].filter(Boolean).join(" y ")}`} className="adm-tag adm-tag--ok">
+                                                                {student.fds_presidente && student.fds_lector ? "Preside y lee" : student.fds_presidente ? "Preside" : "Lee"}
+                                                            </span>
+                                                        )}
+                                                        {(student.sonido_audio_video || student.sonido_microfonos || student.sonido_zoom) && (
+                                                            <span title={`Sonido: ${[student.sonido_audio_video && "audio y video", student.sonido_microfonos && "micrófonos", student.sonido_zoom && "Zoom"].filter(Boolean).join(", ")}`} className="adm-tag adm-tag--ok">
+                                                                Sonido
+                                                            </span>
+                                                        )}
                                                         {student.infoadd && <span className="adm-muted" style={{ fontSize: "12px" }}>{student.infoadd}</span>}
-                                                        {!student.es_anciano && !student.es_siervo && !pioneer && !student.infoadd && <span className="adm-muted">-</span>}
+                                                        {!student.es_anciano && !student.es_siervo && !pioneer && !student.fds_presidente && !student.fds_lector && !student.sonido_audio_video && !student.sonido_microfonos && !student.sonido_zoom && !student.infoadd && <span className="adm-muted">-</span>}
                                                     </span>
                                                 </td>
                                                 <td data-label="Teléfono">
@@ -385,6 +418,53 @@ export default function StudentList() {
                                         { key: 'microfonos', label: 'Micrófonos' },
                                         { key: 'es_anciano', label: 'Anciano' },
                                         { key: 'es_siervo', label: 'Siervo Min.' },
+                                    ].map(({ key, label }) => (
+                                        <button
+                                            key={key}
+                                            type="button"
+                                            className={`adm-toggle ${formData[key] ? "is-on" : ""}`}
+                                            aria-pressed={!!formData[key]}
+                                            onClick={() => setFormData({ ...formData, [key]: !formData[key] })}
+                                        >
+                                            {label}
+                                            <span className="adm-toggle-dot" aria-hidden="true" />
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {formData.gender === "1" && (
+                            <div className="adm-subcard">
+                                <span className="adm-subcard-title">Sonido</span>
+                                <div className="adm-toggle-grid">
+                                    {[
+                                        { key: 'sonido_audio_video', label: 'Audio y video' },
+                                        { key: 'sonido_microfonos', label: 'Micrófonos' },
+                                        { key: 'sonido_zoom', label: 'Zoom' },
+                                    ].map(({ key, label }) => (
+                                        <button
+                                            key={key}
+                                            type="button"
+                                            className={`adm-toggle ${formData[key] ? "is-on" : ""}`}
+                                            aria-pressed={!!formData[key]}
+                                            onClick={() => setFormData({ ...formData, [key]: !formData[key] })}
+                                        >
+                                            {label}
+                                            <span className="adm-toggle-dot" aria-hidden="true" />
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {formData.gender === "1" && (
+                            <div className="adm-subcard">
+                                <span className="adm-subcard-title">Fin de semana · estudio de La Atalaya</span>
+                                <div className="adm-toggle-grid">
+                                    {[
+                                        { key: 'fds_presidente', label: 'Presidencia' },
+                                        { key: 'fds_lector', label: 'Lectura' },
                                     ].map(({ key, label }) => (
                                         <button
                                             key={key}

@@ -71,7 +71,7 @@ export default function PioneerProgress({ category, month, onMonthChange }) {
         <div className="pr-page pp-page fade-in">
             <div className="pr-header">
                 <div>
-                    <Link to={`/informes?mes=${month}`} className="pp-back"><Icon name="chevronLeft" size={16} /> Planilla de informes</Link>
+                    <Link to={`/admin/informes?mes=${month}`} className="pp-back"><Icon name="chevronLeft" size={16} /> Planilla de informes</Link>
                     <h2 className="pr-title">{category.title}</h2>
                     <p className="pr-subtitle">
                         Año de servicio {data?.service_year ?? currentServiceYear()}, calculado hasta <strong>{monthLabel(month)}</strong>.
@@ -86,7 +86,7 @@ export default function PioneerProgress({ category, month, onMonthChange }) {
                 {CATEGORIES.map((c) => (
                     <Link
                         key={c.slug}
-                        to={`/informes/precursores/${c.slug}?mes=${month}`}
+                        to={`/admin/informes/precursores/${c.slug}?mes=${month}`}
                         className={`pp-tab pp-tab--${c.status} ${c.slug === category.slug ? "active" : ""}`}
                         aria-current={c.slug === category.slug ? "page" : undefined}
                     >

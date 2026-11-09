@@ -368,7 +368,12 @@ function StudentModal({ student, onClose, isInGroup, onSetRole, onUpdateStudent 
   const [localData, setLocalData] = useState({
     aseo: student.aseo || false,
     acomodador: student.acomodador || false,
-    microfonos: student.microfonos || false
+    microfonos: student.microfonos || false,
+    fds_presidente: student.fds_presidente || false,
+    fds_lector: student.fds_lector || false,
+    sonido_audio_video: student.sonido_audio_video || false,
+    sonido_microfonos: student.sonido_microfonos || false,
+    sonido_zoom: student.sonido_zoom || false
   });
 
   const handleToggle = (field) => {
@@ -427,6 +432,11 @@ function StudentModal({ student, onClose, isInGroup, onSetRole, onUpdateStudent 
               { key: "aseo", label: "Aseo" },
               { key: "acomodador", label: "Acomodador" },
               { key: "microfonos", label: "Micrófonos" },
+              { key: "fds_presidente", label: "Presidencia FDS" },
+              { key: "fds_lector", label: "Lectura FDS" },
+              { key: "sonido_audio_video", label: "Audio y video" },
+              { key: "sonido_microfonos", label: "Micrófonos (sonido)" },
+              { key: "sonido_zoom", label: "Zoom" },
             ].map(({ key, label }) => (
               <button
                 key={key}

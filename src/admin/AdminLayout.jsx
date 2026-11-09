@@ -1,12 +1,14 @@
 // src/admin/AdminLayout.jsx
-// Estructura visual del panel Admin: menú lateral por categorías, barra superior
-// (buscador de secciones, tema, avisos y usuario) y el panel de contenido.
-// Lo usan /admin, /informes y /informes/precursores/:tipo.
+// Estructura visual del panel Admin: menú lateral por categorías (solo las secciones
+// permitidas al usuario), barra superior (buscador, tema, avisos y usuario) y el panel.
+// Cada opción del menú es una ruta propia: /admin/programas, /admin/estudiantes, …
 import { useContext, useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { ThemeContext } from "../context/ThemeContext";
 import Icon from "./AdminIcons";
-import { NAV_SECTIONS, searchNav, userFromToken } from "./adminNav";
+import { ChangePasswordModal } from "./AdminAccount";
+import { displayUser, navKeyForPath, searchNav, visibleSections } from "./adminNav";
 import "./AdminGlass.css";
 
 const API = import.meta.env.VITE_API_URL || "";
@@ -31,24 +33,29 @@ function useDismiss(ref, open, onClose) {
     }, [ref, open]);
 }
 
-export default function AdminLayout({
-    activeKey,
-    onSelect,
-    editingLabel = null,
-    refreshKey = 0,
-    children,
-}) {
-    const { token, logout } = useContext(AuthContext);
+export default function AdminLayout({ noticeKey = 0, children }) {
+    const { token, user, logout, hasPermission } = useContext(AuthContext);
+    const location = useLocation();
+    const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(() => !isDrawerViewport());
-    const pending = usePendingStaging(token, refreshKey);
+    const [changingPassword, setChangingPassword] = useState(false);
     const scrollRef = useRef(null);
-    const viewKey = activeKey === "edit" ? `edit-${editingLabel}` : activeKey;
+
+    const activeKey = navKeyForPath(location.pathname);
+    const editMatch = location.pathname.match(/^\/admin\/programas\/(?:temporales\/)?([^/]+)\/editar/);
+    const editingLabel = editMatch ? `Editando #${editMatch[1]}` : null;
+    const sections = visibleSections(hasPermission);
+
+    // Avisos: temporales sin publicar (Programas) y solicitudes de acceso (Usuarios)
+    const refresh = `${noticeKey}|${location.pathname}`;
+    const pendingPrograms = usePendingList(`${API}/api/admin/programs/staging`, token, hasPermission("programs"), refresh);
+    const pendingUsers = usePendingList(`${API}/api/users/?status=pending`, token, hasPermission("users"), refresh);
 
     // Cada vista empieza arriba
     useEffect(() => {
         scrollRef.current?.scrollTo?.({ top: 0 });
         if (isDrawerViewport()) window.scrollTo({ top: 0 });
-    }, [viewKey]);
+    }, [location.pathname]);
 
     // Escape cierra el menú en pantallas pequeñas
     useEffect(() => {
@@ -58,10 +65,10 @@ export default function AdminLayout({
         return () => document.removeEventListener("keydown", onKey);
     }, [sidebarOpen]);
 
-    const select = (key) => {
-        onSelect?.(key);
-        if (isDrawerViewport()) setSidebarOpen(false);
-    };
+    const closeDrawer = () => { if (isDrawerViewport()) setSidebarOpen(false); };
+    const go = (path) => { navigate(path); closeDrawer(); };
+
+    const counts = { staging: pendingPrograms?.length || 0, users: pendingUsers?.length || 0 };
 
     return (
         <div className={`adm-glass adm-shell ${sidebarOpen ? "adm-shell--open" : "adm-shell--collapsed"}`}>
@@ -85,7 +92,7 @@ export default function AdminLayout({
                 </div>
 
                 <nav className="adm-nav">
-                    {NAV_SECTIONS.map((section) => (
+                    {sections.map((section) => (
                         <div key={section.title} className="adm-nav-section">
                             <span className="adm-nav-heading">{section.title}</span>
                             <ul>
@@ -93,13 +100,13 @@ export default function AdminLayout({
                                     <li key={item.key}>
                                         <NavEntry
                                             item={item}
-                                            active={activeKey === item.key}
-                                            onSelect={select}
-                                            count={item.key === "staging" ? pending?.length : 0}
+                                            active={activeKey === item.key && !editingLabel}
+                                            onNavigate={closeDrawer}
+                                            count={counts[item.key] || 0}
                                         />
                                     </li>
                                 ))}
-                                {section.title === "Programas" && activeKey === "edit" && editingLabel && (
+                                {section.title === "Programas" && editingLabel && (
                                     <li>
                                         <span className="adm-nav-item active is-static" aria-current="page" title={editingLabel}>
                                             <Icon name="edit" className="adm-nav-icon" />
@@ -141,18 +148,21 @@ export default function AdminLayout({
                         <Icon name="menu" />
                     </button>
 
-                    <AdminSearch onSelect={select} />
+                    <AdminSearch onSelect={go} hasPermission={hasPermission} />
 
                     <div className="adm-topbar-actions">
                         <AdminThemeToggle />
-                        <AdminNotifications pending={pending} onOpenStaging={() => select("staging")} />
-                        <UserMenu token={token} onLogout={logout} />
+                        <AdminNotifications programs={pendingPrograms} users={pendingUsers} onGo={go} />
+                        <UserMenu user={user} onLogout={logout} onChangePassword={() => setChangingPassword(true)} />
                     </div>
                 </header>
 
+                {/* Fuera de la barra superior: su backdrop-filter atraparía el position: fixed del modal */}
+                {changingPassword && <ChangePasswordModal onClose={() => setChangingPassword(false)} />}
+
                 <main className="adm-panel">
                     <div className="adm-panel-scroll" ref={scrollRef}>
-                        <div className="adm-view" key={viewKey}>
+                        <div className="adm-view" key={location.pathname}>
                             {children}
                         </div>
                     </div>
@@ -162,13 +172,13 @@ export default function AdminLayout({
     );
 }
 
-function NavEntry({ item, active, onSelect, count }) {
+function NavEntry({ item, active, onNavigate, count }) {
     const body = (
         <>
             <Icon name={item.icon} className="adm-nav-icon" />
             <span className="adm-nav-label">{item.label}</span>
             {item.type === "link" && <Icon name="external" size={14} className="adm-nav-ext" />}
-            {count > 0 && <span className="adm-nav-count" aria-label={`${count} sin publicar`}>{count}</span>}
+            {count > 0 && <span className="adm-nav-count" aria-label={`${count} pendientes`}>{count}</span>}
         </>
     );
     if (item.type === "link") {
@@ -179,27 +189,27 @@ function NavEntry({ item, active, onSelect, count }) {
         );
     }
     return (
-        <button
-            type="button"
+        <Link
+            to={item.path}
             className={`adm-nav-item ${active ? "active" : ""}`}
             aria-current={active ? "page" : undefined}
-            onClick={() => onSelect(item.key)}
+            onClick={onNavigate}
             title={item.label}
         >
             {body}
-        </button>
+        </Link>
     );
 }
 
 // Buscador de secciones del panel (Ctrl + K)
-function AdminSearch({ onSelect }) {
+function AdminSearch({ onSelect, hasPermission }) {
     const [query, setQuery] = useState("");
     const [open, setOpen] = useState(false);
     const [expanded, setExpanded] = useState(false); // móvil: el campo se despliega
     const [cursor, setCursor] = useState(0);
     const boxRef = useRef(null);
     const inputRef = useRef(null);
-    const results = searchNav(query);
+    const results = searchNav(query, hasPermission);
 
     const close = () => { setOpen(false); setExpanded(false); };
     useDismiss(boxRef, open || expanded, close);
@@ -219,7 +229,7 @@ function AdminSearch({ onSelect }) {
     const choose = (item) => {
         if (!item) return;
         if (item.type === "link") window.open(item.href, "_blank", "noopener,noreferrer");
-        else onSelect(item.key);
+        else onSelect(item.path);
         setQuery("");
         close();
         inputRef.current?.blur();
@@ -285,31 +295,33 @@ function AdminSearch({ onSelect }) {
     );
 }
 
-// Programas temporales sin publicar (mismo endpoint de staging que ya usa el panel)
-function usePendingStaging(token, refreshKey) {
-    const [pending, setPending] = useState(null);
+// Lista para los avisos (solo si el usuario tiene el módulo); se recarga al navegar
+function usePendingList(url, token, enabled, refresh) {
+    const [items, setItems] = useState(null);
     useEffect(() => {
-        if (!token) return;
+        if (!token || !enabled) return;
         let cancelled = false;
-        fetch(`${API}/api/admin/programs/staging`, { headers: { Authorization: `Bearer ${token}` } })
+        fetch(url, { headers: { Authorization: `Bearer ${token}` } })
             .then((r) => (r.ok ? r.json() : null))
             .then((data) => {
                 if (cancelled || !Array.isArray(data)) return;
-                setPending([...data].sort((a, b) => new Date(a.week_start) - new Date(b.week_start)));
+                setItems(data);
             })
             .catch(() => { /* el aviso es opcional: sin datos no se muestra el contador */ });
         return () => { cancelled = true; };
-    }, [token, refreshKey]);
-    return pending;
+    }, [url, token, enabled, refresh]);
+    return enabled ? items : null;
 }
 
-function AdminNotifications({ pending, onOpenStaging }) {
+function AdminNotifications({ programs, users, onGo }) {
     const [open, setOpen] = useState(false);
     const boxRef = useRef(null);
     useDismiss(boxRef, open, () => setOpen(false));
 
-    const count = pending?.length || 0;
+    const sortedPrograms = [...(programs || [])].sort((a, b) => new Date(a.week_start) - new Date(b.week_start));
+    const count = sortedPrograms.length + (users?.length || 0);
     const fmt = (d) => new Date(`${String(d).split("T")[0]}T12:00:00`).toLocaleDateString("es-CO", { day: "2-digit", month: "short" });
+    const go = (path) => { setOpen(false); onGo(path); };
 
     return (
         <div className="adm-pop" ref={boxRef}>
@@ -318,7 +330,7 @@ function AdminNotifications({ pending, onOpenStaging }) {
                 className={`adm-icon-btn ${count ? "is-lit" : ""}`}
                 onClick={() => setOpen((v) => !v)}
                 aria-expanded={open}
-                aria-label={count ? `${count} programas temporales sin publicar` : "Avisos"}
+                aria-label={count ? `${count} avisos pendientes` : "Avisos"}
                 title="Avisos"
             >
                 <Icon name="bell" />
@@ -330,24 +342,47 @@ function AdminNotifications({ pending, onOpenStaging }) {
                         <strong>Avisos</strong>
                         <span>{count ? `${count} pendiente${count === 1 ? "" : "s"}` : "Al día"}</span>
                     </div>
-                    {count === 0 ? (
-                        <p className="adm-dropdown-empty">No hay programas temporales esperando publicación.</p>
-                    ) : (
-                        <ul className="adm-notif-list">
-                            {pending.slice(0, 5).map((p) => (
-                                <li key={p.id}>
-                                    <span className="adm-dropdown-icon"><Icon name="clock" size={16} /></span>
-                                    <span className="adm-dropdown-text">
-                                        <strong>{p.title || "Programa sin título"}</strong>
-                                        <small>Semana del {fmt(p.week_start)} · sin publicar</small>
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
+                    {count === 0 && <p className="adm-dropdown-empty">No hay nada pendiente por revisar.</p>}
+
+                    {users?.length > 0 && (
+                        <>
+                            <p className="adm-notif-group">Solicitudes de acceso</p>
+                            <ul className="adm-notif-list">
+                                {users.slice(0, 4).map((u) => (
+                                    <li key={`u${u.id}`}>
+                                        <span className="adm-dropdown-icon"><Icon name="user" size={16} /></span>
+                                        <span className="adm-dropdown-text">
+                                            <strong>{u.full_name || u.email}</strong>
+                                            <small>{u.email} · espera aprobación</small>
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                            <button type="button" className="adm-btn adm-btn--primary adm-btn--block" onClick={() => go("/admin/usuarios?estado=pendientes")}>
+                                Revisar solicitudes
+                            </button>
+                        </>
                     )}
-                    <button type="button" className="adm-btn adm-btn--primary adm-btn--block" onClick={() => { setOpen(false); onOpenStaging(); }}>
-                        Ir a Temporal
-                    </button>
+
+                    {sortedPrograms.length > 0 && (
+                        <>
+                            <p className="adm-notif-group">Programas sin publicar</p>
+                            <ul className="adm-notif-list">
+                                {sortedPrograms.slice(0, 4).map((p) => (
+                                    <li key={`p${p.id}`}>
+                                        <span className="adm-dropdown-icon"><Icon name="clock" size={16} /></span>
+                                        <span className="adm-dropdown-text">
+                                            <strong>{p.title || "Programa sin título"}</strong>
+                                            <small>Semana del {fmt(p.week_start)} · sin publicar</small>
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                            <button type="button" className="adm-btn adm-btn--ghost adm-btn--block" onClick={() => go("/admin/programas/temporales")}>
+                                Ir a Temporal
+                            </button>
+                        </>
+                    )}
                 </div>
             )}
         </div>
@@ -370,11 +405,11 @@ function AdminThemeToggle() {
     );
 }
 
-function UserMenu({ token, onLogout }) {
+function UserMenu({ user, onLogout, onChangePassword }) {
     const [open, setOpen] = useState(false);
     const boxRef = useRef(null);
     useDismiss(boxRef, open, () => setOpen(false));
-    const user = userFromToken(token);
+    const me = displayUser(user);
 
     return (
         <div className="adm-pop" ref={boxRef}>
@@ -385,22 +420,26 @@ function UserMenu({ token, onLogout }) {
                 aria-expanded={open}
                 aria-haspopup="menu"
             >
-                <span className="adm-avatar" aria-hidden="true">{user.initials}</span>
+                <span className="adm-avatar" aria-hidden="true">{me.initials}</span>
                 <span className="adm-user-text">
-                    <strong>{user.name}</strong>
-                    <small>{user.role}</small>
+                    <strong>{me.name}</strong>
+                    <small>{me.role}</small>
                 </span>
                 <Icon name="chevronDown" size={16} className="adm-user-caret" />
             </button>
             {open && (
                 <div className="adm-dropdown adm-user-menu" role="menu">
                     <div className="adm-user-card">
-                        <span className="adm-avatar adm-avatar--lg" aria-hidden="true">{user.initials}</span>
+                        <span className="adm-avatar adm-avatar--lg" aria-hidden="true">{me.initials}</span>
                         <span className="adm-dropdown-text">
-                            <strong>{user.name}</strong>
-                            <small>{user.email || user.role}</small>
+                            <strong>{me.name}</strong>
+                            <small>{me.email}</small>
                         </span>
                     </div>
+                    <button type="button" className="adm-dropdown-item" role="menuitem" onClick={() => { setOpen(false); onChangePassword(); }}>
+                        <span className="adm-dropdown-icon"><Icon name="lock" size={18} /></span>
+                        <span className="adm-dropdown-text"><strong>Cambiar contraseña</strong></span>
+                    </button>
                     <button type="button" className="adm-dropdown-item is-danger" role="menuitem" onClick={onLogout}>
                         <span className="adm-dropdown-icon"><Icon name="logout" size={18} /></span>
                         <span className="adm-dropdown-text"><strong>Cerrar sesión</strong></span>

@@ -180,7 +180,7 @@ export default function PreachingReports() {
                                 {pioneerStats.map((s) => (
                                     <li key={s.key}>
                                         <Link
-                                            to={`/informes/precursores/${slugForStatus(s.key)}?mes=${month}`}
+                                            to={`/admin/informes/precursores/${slugForStatus(s.key)}?mes=${month}`}
                                             className={`pr-pioneer-stat pr-pioneer-stat--${s.key}`}
                                             onClick={confirmLeave}
                                             title="Ver el seguimiento de sus metas"

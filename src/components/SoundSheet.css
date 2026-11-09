@@ -1,0 +1,61 @@
+/* Hoja de Sonido: título en la primera fila, encabezado dorado y nombres en negrita,
+   como la hoja de cálculo original. */
+.snd-sheet {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    color: #000;
+    font-family: Calibri, Carlito, "Segoe UI", Arial, sans-serif;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}
+
+.snd-sheet-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.snd-sheet-table .snd-col-date { width: 27.4%; }
+.snd-sheet-table .snd-col-name { width: 24.2%; }
+
+.snd-sheet-table th,
+.snd-sheet-table td {
+    border: 1px solid #000;
+    text-align: center;
+    vertical-align: middle;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.snd-sheet-table .snd-sheet-title {
+    height: 40px;
+    padding: 4px 8px;
+    background: #fff;
+    font-size: 17px;
+    letter-spacing: 0.01em;
+}
+
+.snd-sheet-head th {
+    height: 40px;
+    padding: 4px 8px;
+    background: #dea500;
+    color: #000;
+    font-size: 17px;
+}
+
+.snd-sheet-table td {
+    height: 40px;
+    padding: 3px 8px;
+    font-size: 14px;
+}
+
+.snd-sheet-table td.snd-sheet-date {
+    font-size: 12px;
+}
+
+@media print {
+    .snd-sheet { max-width: 100%; }
+    .snd-sheet-table tr { break-inside: avoid; }
+}
