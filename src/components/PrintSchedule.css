@@ -450,3 +450,30 @@
     .section-header { font-size: 13px; }
     .schedule-section { margin-bottom: 6px; }
 }
+
+/* ─── Fin de semana: filtros de la vista ─── */
+.weekend-filters {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.weekend-filters label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #333;
+}
+
+.weekend-filters input,
+.weekend-filters select {
+    padding: 6px 8px;
+    border: 1px solid #c7c7c7;
+    border-radius: 5px;
+    background: #fff;
+    color: #111;
+    font: inherit;
+}
