@@ -426,7 +426,7 @@ function RowsCard({ config, words: w, upcoming, past, all, thisSaturday, onEdit,
       ) : (
         <>
           <div className="adm-table-wrap">
-            <table className="adm-table adm-table--cards">
+            <table className={`adm-table adm-table--cards ${config.roles.length > 2 ? "adm-table--cards-md" : ""}`}>
               <thead>
                 <tr>
                   <th>Fecha</th>
@@ -787,7 +787,7 @@ function PeopleCard({ config, people, setPeople, call, logout, onChanged }) {
       ) : (
         <>
           <div className="adm-table-wrap">
-            <table className="adm-table adm-table--cards">
+            <table className={`adm-table adm-table--cards ${config.roles.length > 2 ? "adm-table--cards-md" : ""}`}>
               <thead>
                 <tr>
                   <th>Hermano</th>

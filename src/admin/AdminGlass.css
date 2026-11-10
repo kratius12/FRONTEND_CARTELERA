@@ -4054,3 +4054,203 @@ body.dark .adm-glass .pr-type--auxiliar {
 @media (min-width: 900px) {
   .adm-form-grid.adm-wk-grid3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+/* ─── Revisión responsive (2026-11) ─────────────────────────────────────────── */
+
+/* Leyenda del tablero de grupos: baja de línea en pantallas angostas */
+.adm-board-legend {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+/* Tooltips de las columnas de los extremos: se abren hacia adentro */
+.adm-col:nth-child(2) .adm-col-tip,
+.adm-col:nth-child(3) .adm-col-tip {
+  left: 0;
+  transform: translate(0, 4px);
+}
+
+.adm-col:nth-last-child(1) .adm-col-tip,
+.adm-col:nth-last-child(2) .adm-col-tip {
+  left: auto;
+  right: 0;
+  transform: translate(0, 4px);
+}
+
+.adm-col:nth-child(2):hover .adm-col-tip,
+.adm-col:nth-child(3):hover .adm-col-tip,
+.adm-col:nth-last-child(1):hover .adm-col-tip,
+.adm-col:nth-last-child(2):hover .adm-col-tip,
+.adm-col:nth-child(2):focus-visible .adm-col-tip,
+.adm-col:nth-child(3):focus-visible .adm-col-tip,
+.adm-col:nth-last-child(1):focus-visible .adm-col-tip,
+.adm-col:nth-last-child(2):focus-visible .adm-col-tip {
+  transform: translate(0, 0);
+}
+
+/* Tablet: cuatro indicadores en 2 × 2 en vez de 3 + 1 */
+@media (min-width: 601px) and (max-width: 1100px) {
+  .adm-stats:has(> :nth-child(4):last-child) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Tablas anchas (usuarios, sonido): tarjetas en dos columnas entre 601 y 1100 px */
+@media (min-width: 601px) and (max-width: 1100px) {
+  .adm-glass .adm-table--cards-md thead {
+    display: none;
+  }
+
+  .adm-glass .adm-table--cards-md {
+    display: block;
+    width: 100%;
+  }
+
+  .adm-glass .adm-table--cards-md tbody {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .adm-glass .adm-table--cards-md tr {
+    display: block;
+    padding: 6px 14px;
+    border-radius: 16px;
+    border: 1px solid var(--adm-card-border);
+    background: var(--adm-sub);
+  }
+
+  .adm-glass .adm-table--cards-md td {
+    display: grid;
+    grid-template-columns: minmax(84px, auto) minmax(0, 1fr);
+    align-items: center;
+    gap: 2px 16px;
+    width: 100%;
+    padding: 10px 0;
+    text-align: right;
+    border-bottom: 1px solid var(--adm-line);
+    background: transparent;
+  }
+
+  .adm-glass .adm-table--cards-md td > * {
+    grid-column: 2;
+    justify-self: end;
+  }
+
+  .adm-glass .adm-table--cards-md tbody tr td:last-child {
+    border-bottom: 0;
+  }
+
+  .adm-glass .adm-table--cards-md td::before {
+    content: attr(data-label);
+    grid-column: 1;
+    grid-row: 1 / span 4;
+    color: var(--adm-ink-2);
+    font-size: 12px;
+    font-weight: 600;
+    text-align: left;
+  }
+
+  .adm-glass .adm-table--cards-md tbody tr:hover td {
+    background: transparent;
+  }
+
+  .adm-glass .adm-table--cards-md td.actions-cell > .adm-actions,
+  .adm-glass .adm-table--cards-md td > .adm-actions {
+    justify-content: flex-end;
+  }
+
+  .adm-card > .table-container:has(.adm-table--cards-md),
+  .adm-card > .adm-table-wrap:has(.adm-table--cards-md) {
+    padding: 4px 14px 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Formulario de programas: un campo por fila y la descripción del punto a lo ancho */
+  .adm-glass .prog-form .form-row--2,
+  .adm-glass .prog-form .form-row--3 {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .adm-glass .prog-form .form-row--2[style] {
+    padding-left: 0 !important;
+  }
+
+  .adm-glass .prog-form .form-row--inline {
+    gap: 8px;
+  }
+
+  .adm-glass .prog-form .form-row--inline > .flex-1 {
+    flex: 1 1 100%;
+    min-width: 0;
+    order: 10;
+  }
+
+  /* Más específicos que el estilo general de campos (que los pone al 100 %) */
+  .adm-glass .prog-form .form-fieldset .form-row.form-row--inline > select:not([multiple]) {
+    flex: 0 0 auto;
+    width: 128px;
+  }
+
+  .adm-glass .prog-form .form-fieldset .form-row.form-row--inline > input[type="number"] {
+    flex: 0 0 auto;
+    width: 72px;
+  }
+
+  .adm-glass .form-fieldset {
+    padding: 18px 14px 14px;
+  }
+
+  .adm-glass .item-block {
+    padding: 12px;
+  }
+}
+
+/* Paginación y resumen de informes en teléfonos angostos */
+@media (max-width: 420px) {
+  .adm-pager {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .adm-pager-nav {
+    width: 100%;
+    margin-left: 0;
+    gap: 6px;
+    justify-content: space-between;
+  }
+
+  .adm-pager-nav .adm-btn--sm {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .adm-glass .pr-summary-table th,
+  .adm-glass .pr-summary-table td {
+    padding: 6px 4px;
+    font-size: 12px;
+  }
+}
+
+/* Filas pendientes en modo tarjeta: el acento va en el borde de la tarjeta, no sobre la etiqueta */
+@media (max-width: 600px) {
+  .adm-glass .adm-row-pending td:first-child {
+    box-shadow: none;
+  }
+
+  .adm-glass tr.adm-row-pending {
+    box-shadow: inset 3px 0 0 rgba(217, 119, 6, 0.7);
+  }
+}
+
+@media (min-width: 601px) and (max-width: 1100px) {
+  .adm-glass .adm-table--cards-md .adm-row-pending td:first-child {
+    box-shadow: none;
+  }
+
+  .adm-glass .adm-table--cards-md tr.adm-row-pending {
+    box-shadow: inset 3px 0 0 rgba(217, 119, 6, 0.7);
+  }
+}

@@ -175,7 +175,7 @@ export default function UserManagement() {
           </EmptyState>
         ) : (
           <div className="table-container">
-            <table className="admin-table adm-users-table">
+            <table className="admin-table adm-users-table adm-table--cards-md">
               <thead>
                 <tr>
                   <th>Usuario</th>

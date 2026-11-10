@@ -114,6 +114,14 @@ export default function StagingPreview() {
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+        @media (max-width: 600px) {
+          .preview-badge {
+            top: auto;
+            right: auto;
+            bottom: 26px;
+            left: 16px;
+          }
+        }
       `}</style>
     </>
   );
