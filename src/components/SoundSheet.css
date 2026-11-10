@@ -59,3 +59,29 @@
     .snd-sheet { max-width: 100%; }
     .snd-sheet-table tr { break-inside: avoid; }
 }
+
+/* Teléfonos: misma hoja con letra más chica (al imprimir no cambia) */
+@media screen and (max-width: 600px) {
+    .snd-sheet-table .snd-sheet-title {
+        height: 34px;
+        padding: 3px 4px;
+        font-size: 12px;
+    }
+
+    .snd-sheet-head th {
+        height: 34px;
+        padding: 3px 2px;
+        font-size: 10.5px;
+    }
+
+    .snd-sheet-table td {
+        height: 36px;
+        padding: 3px 4px;
+        font-size: 10.5px;
+        overflow-wrap: break-word;
+    }
+
+    .snd-sheet-table td.snd-sheet-date {
+        font-size: 9.5px;
+    }
+}

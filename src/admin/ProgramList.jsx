@@ -195,8 +195,10 @@ export default function ProgramList({ onEdit }) {
                                                     <span className="adm-badge adm-badge--ok">Actual</span>
                                                 ) : old ? (
                                                     <span className="adm-badge adm-badge--muted">Antiguo</span>
-                                                ) : (
+                                                ) : new Date(`${toDateOnly(p.week_start)}T00:00:00`) > new Date() ? (
                                                     <span className="adm-badge">Próximo</span>
+                                                ) : (
+                                                    <span className="adm-badge adm-badge--muted">Reciente</span>
                                                 )}
                                             </td>
                                             <td data-label="Acciones" className="actions-cell" style={{ textAlign: "right" }}>

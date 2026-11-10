@@ -41,7 +41,7 @@ function HistorySection({ title, icon, rows, columns }) {
             ) : (
                 <>
                     <div className="adm-table-wrap">
-                        <table className="adm-table">
+                        <table className="adm-table adm-table--cards">
                             <thead>
                                 <tr>
                                     {columns.map(c => <th key={c}>{c}</th>)}
@@ -51,7 +51,7 @@ function HistorySection({ title, icon, rows, columns }) {
                                 {visible.map((row, i) => (
                                     <tr key={i}>
                                         {row.map((cell, j) => (
-                                            <td key={j} className={j === 0 ? "adm-cell-strong" : undefined}>{cell}</td>
+                                            <td key={j} data-label={columns[j]} className={j === 0 ? "adm-cell-strong" : undefined}><span>{cell}</span></td>
                                         ))}
                                     </tr>
                                 ))}

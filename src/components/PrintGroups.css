@@ -250,3 +250,10 @@
     font-size: 13px;
   }
 }
+
+/* Pantallas angostas: dos columnas para que se lean los nombres (al imprimir siguen tres) */
+@media screen and (max-width: 640px) {
+  .pg-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
