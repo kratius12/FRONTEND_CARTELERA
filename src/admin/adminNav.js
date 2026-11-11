@@ -10,6 +10,7 @@ export const MODULES = [
     { key: "assignments", label: "Asignaciones", hint: "Programación, aseo, micrófonos y acomodadores" },
     { key: "weekend", label: "Fin de semana", hint: "Presidente y lector del estudio de La Atalaya" },
     { key: "sound", label: "Sonido", hint: "Audio y video, micrófonos y Zoom" },
+    { key: "talks", label: "Conferencias", hint: "Conferenciantes que vienen y que van" },
     { key: "reports", label: "Informes de predicación", hint: "Planilla mensual y seguimiento de precursores" },
     { key: "users", label: "Usuarios y permisos", hint: "Aprobar solicitudes y asignar accesos" },
 ];
@@ -40,6 +41,7 @@ export const NAV_SECTIONS = [
             { key: "attendant", label: "Acomodadores", icon: "door", type: "page", path: "/admin/acomodadores", perm: "assignments" },
             { key: "weekend", label: "Fin de semana", icon: "bookOpen", type: "page", path: "/admin/fin-de-semana", perm: "weekend" },
             { key: "sound", label: "Sonido", icon: "headphones", type: "page", path: "/admin/sonido", perm: "sound" },
+            { key: "talks", label: "Conferencias", icon: "megaphone", type: "page", path: "/admin/conferencias", perm: "talks" },
         ],
     },
     {

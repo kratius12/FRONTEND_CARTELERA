@@ -610,7 +610,7 @@ function RowEditor({ config, words: w, call, token, logout, row, takenDates, def
 
         {config.hasMidweek && weeksChecked.length > 0 && (
           <p className="adm-help">
-            Se revisan aseo, micrófonos y acomodadores de {weeksChecked.length > 1 ? "las semanas" : "la semana"} {weeksChecked.join(" y ")}
+            Se revisan {config.checksText || "aseo, micrófonos y acomodadores"} de {weeksChecked.length > 1 ? "las semanas" : "la semana"} {weeksChecked.join(" y ")}
             {config.crossCheck ? `, y ${config.crossCheck} de ese sábado` : ""}.
           </p>
         )}

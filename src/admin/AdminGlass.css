@@ -4254,3 +4254,276 @@ body.dark .adm-glass .pr-type--auxiliar {
     box-shadow: inset 3px 0 0 rgba(217, 119, 6, 0.7);
   }
 }
+
+/* ─── Conferencias (/admin/conferencias) ──────────────────────────────────── */
+.adm-tk-month {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 16px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--adm-card-border);
+  background: var(--adm-card);
+  backdrop-filter: blur(14px);
+}
+
+.adm-tk-month strong {
+  min-width: 150px;
+  text-align: center;
+  font-size: 15px;
+  color: var(--adm-ink);
+}
+
+.adm-tk-person {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+}
+
+.adm-tk-phone {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--adm-accent-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.adm-tk-phone:hover {
+  text-decoration: underline;
+}
+
+.adm-tk-outline {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.adm-tk-num {
+  flex-shrink: 0;
+  min-width: 34px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: var(--adm-chip);
+  color: var(--adm-accent-text);
+  font-size: 12.5px;
+  font-weight: 800;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.adm-tk-yesno {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.adm-glass .adm-tk-choice {
+  min-width: 72px;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 12px;
+  border: 1px solid var(--adm-card-border);
+  background: var(--adm-sub);
+  color: var(--adm-ink-2);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.adm-glass .adm-tk-choice.is-on {
+  background: var(--adm-primary);
+  border-color: transparent;
+  color: var(--adm-primary-ink);
+}
+
+.adm-glass .adm-tk-choice:focus-visible {
+  outline: 2px solid var(--adm-accent-text);
+  outline-offset: 2px;
+}
+
+@media (min-width: 601px) {
+  .adm-form-grid.adm-tk-outline-grid {
+    grid-template-columns: 160px minmax(0, 1fr);
+  }
+}
+
+.adm-tk-speakers {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 14px;
+}
+
+.adm-tk-speaker {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--adm-card-border);
+  background: var(--adm-sub);
+}
+
+.adm-tk-speaker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.adm-tk-speaker-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 13px;
+}
+
+.adm-tk-outlines {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Número | título (y debajo la etiqueta de imágenes) | acciones */
+.adm-tk-outlines li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "num title actions"
+    "num tag actions";
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 3px;
+  padding: 7px 0;
+  border-top: 1px solid var(--adm-line);
+  font-size: 13.5px;
+}
+
+.adm-tk-outlines li > .adm-tk-num { grid-area: num; align-self: start; margin-top: 1px; }
+.adm-tk-outlines li > .adm-tk-outline-title { grid-area: title; color: var(--adm-ink); }
+.adm-tk-outlines li > .adm-tk-tags { grid-area: tag; justify-self: start; }
+.adm-tk-outlines li > .adm-actions { grid-area: actions; }
+
+/* Flechas del selector de mes: visibles sobre el fondo claro de la tarjeta */
+.adm-glass .adm-tk-month .adm-icon-btn {
+  width: 34px;
+  height: 34px;
+  color: var(--adm-ink);
+  background: var(--adm-sub);
+  border: 1px solid var(--adm-card-border);
+}
+
+.adm-glass .adm-tk-month .adm-icon-btn:hover {
+  background: var(--adm-chip);
+  color: var(--adm-accent-text);
+}
+
+.adm-wk-paper .tk-sheet { min-width: 700px; }
+
+.adm-tk-add {
+  justify-self: start;
+}
+
+@media (max-width: 600px) {
+  .adm-tk-month {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .adm-table--cards .adm-tk-person,
+  .adm-table--cards .adm-tk-outline {
+    justify-items: end;
+    justify-content: flex-end;
+    text-align: right;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 1100px) {
+  .adm-table--cards-md .adm-tk-person {
+    justify-items: end;
+  }
+
+  .adm-table--cards-md .adm-tk-outline {
+    justify-content: flex-end;
+    text-align: right;
+  }
+}
+
+/* Indicadores con texto (fechas largas) en teléfonos angostos: que no se partan las palabras */
+@media (max-width: 420px) {
+  .adm-stat-value.adm-stat-value--text {
+    font-size: 15px;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+}
+
+/* Conferenciantes: privilegio junto al nombre y aviso si ya no está habilitado */
+.adm-tk-speaker-name {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  min-width: 0;
+}
+
+.adm-tk-speaker--off {
+  border-color: rgba(217, 119, 6, 0.45);
+}
+
+.adm-tk-speaker-warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--adm-warn-bg);
+  color: var(--adm-warn);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.adm-tk-speaker-warn > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Conferencias: canción de cada bosquejo */
+.adm-tk-song {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--adm-ink);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.adm-tk-song svg {
+  color: var(--adm-accent-text);
+}
+
+.adm-tk-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+}
+
+.adm-tk-tags .adm-tag {
+  gap: 4px;
+}
+
+.adm-tag--muted {
+  color: var(--adm-ink-2);
+  background: rgba(11, 38, 59, 0.06);
+}
+
+html.dark .adm-glass .adm-tag--muted,
+body.dark .adm-glass .adm-tag--muted {
+  background: rgba(255, 255, 255, 0.07);
+}
