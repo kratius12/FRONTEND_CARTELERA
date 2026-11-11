@@ -30,6 +30,7 @@ import CleaningManager from "./admin/CleaningManager";
 import AssignmentManager from "./admin/AssignmentManager";
 import WeekendSchedule from "./admin/WeekendSchedule";
 import SoundSchedule from "./admin/SoundSchedule";
+import TalksPage from "./admin/TalksPage";
 
 // Rutas anteriores del módulo de informes: llevan a las nuevas conservando ?mes=
 function LegacyReportsRedirect() {
@@ -90,6 +91,7 @@ export default function AppRoutes() {
         <Route path="acomodadores" element={guard("assignments", <AssignmentManager type="attendant" title="Acomodadores" icon="door" />)} />
         <Route path="fin-de-semana" element={guard("weekend", <WeekendSchedule />)} />
         <Route path="sonido" element={guard("sound", <SoundSchedule />)} />
+        <Route path="conferencias" element={guard("talks", <TalksPage />)} />
         <Route path="informes" element={guard("reports", <PreachingReportsPage />)} />
         <Route path="informes/precursores/:tipo" element={guard("reports", <PioneerProgressPage />)} />
         <Route path="*" element={<AdminNotFound />} />

@@ -9,7 +9,7 @@ const config = {
   apiBase: "/api/admin/sound",
   title: "Sonido",
   icon: "headphones",
-  subtitle: "Audio y video, micrófonos y Zoom, del sábado a la reunión de entre semana. Nadie queda asignado si en alguna de esas dos semanas tiene aseo, micrófonos o acomodador, ni si preside o lee ese sábado.",
+  subtitle: "Audio y video, micrófonos y Zoom, del sábado a la reunión de entre semana. Nadie queda asignado si en alguna de esas dos semanas es encargado de aseo, tiene micrófonos o es acomodador, ni si preside o lee ese sábado. Que su grupo tenga aseo no lo impide.",
   unit: { one: "semana", many: "semanas", feminine: true },
   roles: [
     { key: "audio", label: "Audio y video", noun: "audio y video", flag: "sonido_audio_video", short: "A", past: "Audio" },
@@ -18,8 +18,9 @@ const config = {
   ],
   hasMidweek: true,
   crossCheck: "Fin de semana",
+  checksText: "encargado de aseo, micrófonos y acomodadores",
   generatorText:
-    "Elige primero a quien hace más tiempo no tiene la parte, nunca la misma persona en dos columnas, y salta a quien tenga aseo, micrófonos o acomodador en la semana del sábado o en la de la reunión de entre semana, o a quien presida o lea ese sábado. Las semanas ya programadas no se tocan.",
+    "Elige primero a quien hace más tiempo no tiene la parte, nunca la misma persona en dos columnas, y salta a quien sea encargado de aseo, tenga micrófonos o sea acomodador en la semana del sábado o en la de la reunión de entre semana, o a quien presida o lea ese sábado. Las semanas ya programadas no se tocan.",
   peopleTitle: "Quién puede estar en sonido",
   Sheet: SoundSheet,
   sheetWeeks: 9,

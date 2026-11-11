@@ -3,6 +3,8 @@ import { useSearchParams } from "react-router-dom";
 import "./PrintSchedule.css";
 import WeekendSheet from "./WeekendSheet";
 import SoundSheet from "./SoundSheet";
+import TalksSheet from "./TalksSheet";
+import { isMonthKey, monthKey, monthLabel } from "./talksSheetUtils";
 import { downloadSheetPDF, sheetDate, upcomingSaturdayISO, isSaturdayISO } from "./weekendSheetUtils";
 
 const API = import.meta.env.VITE_API_URL || "";
@@ -69,6 +71,10 @@ function MenuSelector({ onSelect }) {
                 <button onClick={() => onSelect("sound")} className="menu-card">
                     <span style={{ fontSize: "36px" }}>🎧</span>
                     <span className="menu-card-label">Sonido<br />(Audio, micrófonos y Zoom)</span>
+                </button>
+                <button onClick={() => onSelect("talks")} className="menu-card">
+                    <span style={{ fontSize: "36px" }}>🎤</span>
+                    <span className="menu-card-label">Conferencias<br />(Vienen y van, por mes)</span>
                 </button>
                 <button onClick={() => window.location.href = "/imprimir-grupos"} className="menu-card">
                     <span style={{ fontSize: "36px" }}>👥</span>
@@ -589,11 +595,55 @@ function SaturdaySheetView({ kind, onBack, initialStart, initialWeeks }) {
     );
 }
 
+// ─── Vista 6: Conferencias del mes ───────────────────────────────────────────
+
+function TalksView({ onBack, initialMonth }) {
+    const [month, setMonth] = useState(isMonthKey(initialMonth) ? initialMonth : monthKey());
+    const [data, setData] = useState(null);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        let alive = true;
+        fetch(`${API}/api/programs/talks?month=${month}`)
+            .then((r) => (r.ok ? r.json() : Promise.reject(new Error())))
+            .then((d) => { if (alive) { setData(d); setError(""); } })
+            .catch(() => { if (alive) setError("Error al cargar datos."); });
+        return () => { alive = false; };
+    }, [month]);
+
+    return (
+        <div className="print-page">
+            <div className="print-controls no-print">
+                <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
+                    <button onClick={onBack} className="print-btn" style={{ background: "#6b7280" }}>← Volver</button>
+                    <button onClick={() => window.print()} className="print-btn">🖨️ Imprimir</button>
+                    <button onClick={() => downloadSheetPDF("printable-area-talks", `conferencias_${month}.pdf`)} className="print-btn" style={{ background: "#10b981" }}>📥 Descargar PDF</button>
+                </div>
+                <div className="weekend-filters">
+                    <label>
+                        Mes
+                        <input type="month" value={month} onChange={(e) => isMonthKey(e.target.value) && setMonth(e.target.value)} />
+                    </label>
+                </div>
+                <p>Conferencias de {monthLabel(month)}.</p>
+            </div>
+
+            {error && <div className="no-print" style={{ textAlign: "center", padding: "40px" }}>{error}</div>}
+            {!error && !data && <div className="no-print" style={{ textAlign: "center", padding: "40px" }}>Cargando conferencias...</div>}
+            {!error && data && (
+                <div className="printable-content tk-scroll">
+                    <TalksSheet id="printable-area-talks" month={month} incoming={data.incoming} outgoing={data.outgoing} />
+                </div>
+            )}
+        </div>
+    );
+}
+
 // ─── Componente principal ─────────────────────────────────────────────────────
 
 // ?vista=fin-de-semana o ?vista=sonido abre directamente esa hoja
 // (&desde=YYYY-MM-DD y &semanas=N, opcionales; los usa el botón del panel)
-const VIEW_PARAM = { "fin-de-semana": "weekend", sonido: "sound" };
+const VIEW_PARAM = { "fin-de-semana": "weekend", sonido: "sound", conferencias: "talks" };
 
 export default function PrintSchedule() {
     const [params, setParams] = useSearchParams();
@@ -607,6 +657,7 @@ export default function PrintSchedule() {
     if (!view)               return <MenuSelector onSelect={setView} />;
     if (view === "schedule") return <ScheduleView onBack={back} />;
     if (view === "meeting")  return <MeetingProgramsView onBack={back} />;
+    if (view === "talks")    return <TalksView onBack={back} initialMonth={params.get("mes")} />;
     if (view === "weekend" || view === "sound") {
         return <SaturdaySheetView key={view} kind={view} onBack={back} initialStart={params.get("desde")} initialWeeks={Number(params.get("semanas"))} />;
     }
