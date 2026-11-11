@@ -3,6 +3,8 @@
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { Modal } from "./AdminWidgets";
+import StudentPicker from "./StudentPicker";
+import { findStudent, normalizeName, pickerProblem } from "./studentPickerUtils";
 
 const API = import.meta.env.VITE_API_URL || "";
 
@@ -23,6 +25,10 @@ const emptyItem = () => ({
     assigned: ["", ""],
     noteLabel: "",
 });
+
+// En «Seamos mejores maestros» participan hermanos y hermanas; en las demás secciones,
+// la presidencia y las oraciones solo hermanos.
+const isTeachingSection = (title) => normalizeName(title).includes("mejores maestros");
 
 // Extrae las partes iniciales (pre-secciones) del payload
 function extractPreParts(parts = []) {
@@ -81,6 +87,24 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
     const [preParts, setPreParts] = useState([{ type: "song", text: "" }]);
     const [sections, setSections] = useState([emptySection()]);
     const [postParts, setPostParts] = useState([]);
+
+    // Estudiantes para autocompletar encargados, presidente y oraciones
+    const [people, setPeople] = useState([]);
+    const [peopleState, setPeopleState] = useState("loading"); // loading | ready | error
+    useEffect(() => {
+        let cancelled = false;
+        fetch(`${API}/api/admin/programs/people`, { headers: { Authorization: `Bearer ${token}` } })
+            .then((r) => {
+                if (r.status === 401) { logout(); throw new Error("Sesión expirada"); }
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
+            .then((data) => { if (!cancelled) { setPeople(Array.isArray(data) ? data : []); setPeopleState("ready"); } })
+            .catch(() => { if (!cancelled) setPeopleState("error"); });
+        return () => { cancelled = true; };
+    }, [token, logout]);
+    const checkNames = peopleState === "ready";
+    const canonical = (name) => (checkNames && findStudent(people, name)?.name) || name;
 
     // Pre-poblar cuando initialData cambia (modo edición)
     useEffect(() => {
@@ -284,6 +308,33 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
             return;
         }
 
+        // Cada encargado tiene que ser un nombre elegido de Estudiantes
+        if (!pendingPayload && checkNames) {
+            const fields = [
+                { id: "pf-president", label: "Presidente", value: meta.president, menOnly: true },
+                { id: "pf-opening", label: "Oración apertura", value: meta.openingPrayer, menOnly: true },
+                { id: "pf-closing", label: "Oración cierre", value: meta.closingPrayer, menOnly: true },
+            ];
+            sections.forEach((sec, si) => sec.items.forEach((it, ii) => {
+                if (it.type === "song" || !it.text) return;
+                (sec.columns ? [0, 1] : [0]).forEach((a) => fields.push({
+                    id: `pf-${si}-${ii}-${a}`,
+                    label: `Sección ${si + 1}, punto ${ii + 1} (${sec.columns ? sec.columns[a] : "Encargado"})`,
+                    value: it.assigned?.[a],
+                    menOnly: !sec.columns && !isTeachingSection(sec.title),
+                }));
+            }));
+            const bad = fields.filter((f) => pickerProblem(people, f.value, f.menOnly));
+            if (bad.length) {
+                const first = document.getElementById(bad[0].id);
+                first?.scrollIntoView({ behavior: "smooth", block: "center" });
+                first?.focus({ preventScroll: true });
+                setToast(`⚠️ Elige de la lista de Estudiantes: ${bad.map((f) => f.label).slice(0, 3).join("; ")}${bad.length > 3 ? ` y ${bad.length - 3} más` : ""}.`);
+                setTimeout(() => setToast(""), 5000);
+                return;
+            }
+        }
+
         setSaving(true);
 
         const payload = {
@@ -292,6 +343,9 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
                 ...meta,
                 rangeText: meta.rangeText,
                 readingText: meta.readingText,
+                president: canonical(meta.president),
+                openingPrayer: canonical(meta.openingPrayer),
+                closingPrayer: canonical(meta.closingPrayer),
             },
             parts: [
                 ...preParts.filter((p) => p.text),
@@ -305,7 +359,7 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
                                 ...(it.type ? { type: it.type } : {}),
                                 text: it.text,
                                 ...((!isSong && it.minutes) ? { minutes: Number(it.minutes) } : {}),
-                                ...(!isSong ? { assigned: it.assigned.filter(Boolean) } : {}),
+                                ...(!isSong ? { assigned: it.assigned.filter(Boolean).map(canonical) } : {}),
                                 ...((!isSong && it.noteLabel) ? { noteLabel: it.noteLabel } : {}),
                             };
                         }),
@@ -423,6 +477,12 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
                 />
             </div>
 
+            {peopleState === "error" && (
+                <div className="adm-alert adm-alert--warn" role="note" style={{ marginBottom: 18 }}>
+                    No se pudo cargar la lista de Estudiantes: los nombres se pueden escribir, pero no se verifican.
+                </div>
+            )}
+
             {/* ── META ── */}
             <fieldset className="form-fieldset">
                 <legend>Información general</legend>
@@ -436,16 +496,16 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
                         <input type="text" value={meta.readingText} onChange={(e) => setMeta({ ...meta, readingText: e.target.value })} placeholder="Ej: w24.02 págs. 2-8" />
                     </div>
                     <div className="form-group">
-                        <label>Presidente</label>
-                        <input type="text" value={meta.president} onChange={(e) => setMeta({ ...meta, president: e.target.value })} />
+                        <label htmlFor="pf-president">Presidente</label>
+                        <StudentPicker id="pf-president" menOnly students={people} validate={checkNames} value={meta.president} onChange={(v) => setMeta((m) => ({ ...m, president: v }))} />
                     </div>
                     <div className="form-group">
-                        <label>Oración apertura</label>
-                        <input type="text" value={meta.openingPrayer} onChange={(e) => setMeta({ ...meta, openingPrayer: e.target.value })} />
+                        <label htmlFor="pf-opening">Oración apertura</label>
+                        <StudentPicker id="pf-opening" menOnly students={people} validate={checkNames} value={meta.openingPrayer} onChange={(v) => setMeta((m) => ({ ...m, openingPrayer: v }))} />
                     </div>
                     <div className="form-group">
-                        <label>Oración cierre</label>
-                        <input type="text" value={meta.closingPrayer} onChange={(e) => setMeta({ ...meta, closingPrayer: e.target.value })} />
+                        <label htmlFor="pf-closing">Oración cierre</label>
+                        <StudentPicker id="pf-closing" menOnly students={people} validate={checkNames} value={meta.closingPrayer} onChange={(v) => setMeta((m) => ({ ...m, closingPrayer: v }))} />
                     </div>
                 </div>
             </fieldset>
@@ -581,24 +641,30 @@ export default function ProgramForm({ onSaved, initialData, editSource }) {
 
                                     {!isSong && (sec.columns ? (
                                         <div className="form-row form-row--2" style={{ paddingLeft: 28 }}>
-                                            <div className="form-group">
-                                                <label>{sec.columns[0]}</label>
-                                                <input type="text" value={item.assigned?.[0] || ""} onChange={(e) => updateItemAssigned(si, ii, 0, e.target.value)} />
-                                            </div>
-                                            <div className="form-group">
-                                                <label>{sec.columns[1]}</label>
-                                                <input type="text" value={item.assigned?.[1] || ""} onChange={(e) => updateItemAssigned(si, ii, 1, e.target.value)} />
-                                            </div>
+                                            {[0, 1].map((a) => (
+                                                <div className="form-group" key={a}>
+                                                    <label htmlFor={`pf-${si}-${ii}-${a}`}>{sec.columns[a]}</label>
+                                                    <StudentPicker
+                                                        id={`pf-${si}-${ii}-${a}`}
+                                                        students={people}
+                                                        validate={checkNames}
+                                                        value={item.assigned?.[a] || ""}
+                                                        onChange={(v) => updateItemAssigned(si, ii, a, v)}
+                                                    />
+                                                </div>
+                                            ))}
                                         </div>
                                     ) : (
                                         <div className="form-row form-row--2" style={{ paddingLeft: 28 }}>
                                             <div className="form-group">
-                                                <label>Encargado</label>
-                                                <input
-                                                    type="text"
+                                                <label htmlFor={`pf-${si}-${ii}-0`}>Encargado</label>
+                                                <StudentPicker
+                                                    id={`pf-${si}-${ii}-0`}
+                                                    menOnly={!isTeachingSection(sec.title)}
+                                                    students={people}
+                                                    validate={checkNames}
                                                     value={item.assigned?.[0] || ""}
-                                                    onChange={(e) => updateItemAssigned(si, ii, 0, e.target.value)}
-                                                    placeholder="Nombre del encargado"
+                                                    onChange={(v) => updateItemAssigned(si, ii, 0, v)}
                                                 />
                                             </div>
                                         </div>

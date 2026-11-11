@@ -4527,3 +4527,117 @@ html.dark .adm-glass .adm-tag--muted,
 body.dark .adm-glass .adm-tag--muted {
   background: rgba(255, 255, 255, 0.07);
 }
+
+/* Selector de estudiantes (formulario del programa): escribir y elegir de la lista */
+.adm-picker {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.adm-picker-field {
+  position: relative;
+}
+
+.adm-glass .adm-picker .adm-picker-field input.adm-picker-input:not([type="checkbox"]):not([type="radio"]) {
+  padding-right: 40px;
+  text-overflow: ellipsis;
+}
+
+.adm-glass .adm-picker.is-invalid .adm-picker-field input.adm-picker-input:not([type="checkbox"]):not([type="radio"]) {
+  border-color: var(--adm-bad);
+  background: var(--adm-bad-bg);
+}
+
+.adm-glass .adm-picker-clear {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--adm-ink-3);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.adm-glass .adm-picker-clear:hover {
+  background: var(--adm-tint);
+  color: var(--adm-ink);
+}
+
+.adm-picker-list {
+  top: calc(100% + 6px);
+  left: 0;
+  right: auto;
+  width: 100%;
+  min-width: 240px;
+  max-height: min(300px, 50vh);
+  overflow-y: auto;
+  padding: 6px;
+  border-radius: 14px;
+  transform-origin: top left;
+}
+
+.adm-picker-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13.5px;
+  line-height: 1.3;
+}
+
+.adm-picker-option.is-active {
+  background: var(--adm-tint);
+}
+
+.adm-picker-name {
+  flex: 1;
+  min-width: 0;
+  color: var(--adm-ink);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adm-picker-option small {
+  flex-shrink: 0;
+  color: var(--adm-ink-2);
+  font-size: 12px;
+}
+
+.adm-picker-option.is-current .adm-picker-name {
+  font-weight: 750;
+}
+
+.adm-picker-check {
+  flex-shrink: 0;
+  color: var(--adm-accent-text);
+}
+
+.adm-picker-problem {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  color: var(--adm-bad);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.adm-picker-problem svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
